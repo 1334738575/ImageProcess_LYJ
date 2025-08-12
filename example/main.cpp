@@ -31,6 +31,7 @@ int main()
     // cv::imshow("image", img);
     // cv::waitKey();
     ImageProcess_LYJ::ImageExtractData frame;
+    frame.id = id1;
     frame.cam = &cam;
     frame.img = img;
     funcReadTcw(dataPath2 + std::to_string(id1) + ".txt", frame.Tcw);
@@ -42,6 +43,7 @@ int main()
     cv::Mat img2 = cv::imread(dataPath + std::to_string(id2) + ".png", 0);
     cv::pyrDown(img2, img2);
     ImageProcess_LYJ::ImageExtractData frame2;
+    frame2.id = id2;
     frame2.cam = &cam;
     frame2.img = img2;
     funcReadTcw(dataPath2 + std::to_string(id2) + ".txt", frame2.Tcw);
