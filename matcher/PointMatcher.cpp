@@ -233,7 +233,7 @@ namespace ImageProcess_LYJ
             // std::vector<std::pair<int, int>> rets;
             std::string savepath = "";
             if (_result->debugPath != "")
-                savepath = _result->debugPath + std::to_string(frame.id) + "_" + std::to_string(frame2.id) + ".png";
+                savepath = _result->debugPath + std::to_string(_frame1->id) + "_" + std::to_string(_frame2->id) + ".png";
             matchByF(_frame1->cam->getK(),
                      _frame1->kps_, _frame2->kps_,
                      _frame1->descriptors_, _frame2->descriptors_,

@@ -1,6 +1,8 @@
 #include "ImageProcess_LYJ_Include.h"
 #include "extractor/ORBextractor.h"
 #include "matcher/PointMatcher.h"
+#include "ImageCommon/TwoViewReconstruction.h"
+#include <base/Triangler.h>
 
 
 
@@ -34,6 +36,50 @@ IMAGEPROCESS_LYJ_API int matchORBFeature(ImageExtractData* const _frame1, ImageE
     PointMatcher matcher(opt);
     matcher.match(_frame1, _frame2, _matchResult);
     return cnt;
+}
+
+IMAGEPROCESS_LYJ_API bool reconstructTwo(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult, ImageTriangleData* const _triangleResult)
+{
+	if (!_frame1 || !_frame2 || !_matchResult || !_triangleResult)
+		return false;
+    if (_triangleResult->justTri)
+    {
+        SLAM_LYJ::TriangleOption opt;
+        SLAM_LYJ::Triangler<double> triangler(opt);
+        int sz = _frame1->kps_.size();
+        _triangleResult->bTris.assign(sz, false);
+        _triangleResult->Ps.resize(sz, Eigen::Vector3d::Zero());
+        SLAM_LYJ::PinholeCmera* cam = dynamic_cast<SLAM_LYJ::PinholeCmera*>(_frame1->cam);
+        std::vector<Eigen::Vector2d> uvs(2);
+        std::vector<SLAM_LYJ::Pose3D> Tcws(2);
+        Tcws[0] = _frame1->Tcw;
+        Tcws[1] = _frame2->Tcw;
+        std::vector<SLAM_LYJ::PinholeCmera> cams(2);
+        cams[0] = *cam;
+        cams[1] = *cam;
+        for (int i = 0; i < sz; ++i)
+        {
+            if (_matchResult->match2to1P[i] == -1)
+                continue;
+            uvs[0](0) = _frame1->kps_[i].pt.x;
+            uvs[0](1) = _frame1->kps_[i].pt.y;
+            uvs[1](0) = _frame2->kps_[_matchResult->match2to1P[i]].pt.x;
+            uvs[1](1) = _frame2->kps_[_matchResult->match2to1P[i]].pt.y;
+            if (triangler.runDirect(uvs, Tcws, cams, _triangleResult->Ps[i]))
+                _triangleResult->bTris[i] = true;
+        }
+    }
+    else {
+        TwoViewReconstruction reconstruction(_frame1->cam->getK().cast<float>());
+        std::vector<cv::Point3f> P1s;
+        reconstruction.Reconstruct(_frame1->kps_, _frame2->kps_, _matchResult->match2to1P, _triangleResult->T21, P1s, _triangleResult->bTris);
+        _triangleResult->Ps.resize(P1s.size());
+        for (size_t i = 0; i < P1s.size(); ++i)
+        {
+            _triangleResult->Ps[i] = Eigen::Vector3f(P1s[i].x, P1s[i].y, P1s[i].z).cast<double>();
+        }
+    }
+    return true;
 }
 
 

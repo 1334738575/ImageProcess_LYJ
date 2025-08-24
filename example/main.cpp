@@ -13,7 +13,7 @@ int main()
     std::string dataPath = "D:/tmp/images/";
     std::string dataPath2 = "D:/tmp/texture_data/RT_";
     int id1 = 7;
-    int id2 = 8;
+    int id2 = 13;
     auto funcReadTcw = [](const std::string &_file, SLAM_LYJ::Pose3D &Tcw)
     {
         std::ifstream f(_file);
@@ -57,6 +57,8 @@ int main()
     matchResult.usePointMatch = true;
     matchResult.debugPath = "D:/tmp/imageProcess/match/";
     ImageProcess_LYJ::matchORBFeature(&frame, &frame2, &matchResult);
+
+    //ImageProcess_LYJ::
 
     return 0;
 }

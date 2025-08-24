@@ -26,12 +26,12 @@ namespace ImageProcess_LYJ
 {
 	struct ImageExtractData
 	{
-		int id;;
+		int id = -1;
 		cv::Mat img; //原图
 		cv::Mat mask; //掩膜
 		cv::Mat depths; //深度图
 		cv::Mat normal; //法线图
-		SLAM_LYJ::CameraModule* cam; //相机
+		SLAM_LYJ::CameraModule* cam = nullptr; //相机
 		SLAM_LYJ::Pose3D Tcw; //相机位姿
 
 		//keypoint
@@ -63,8 +63,8 @@ namespace ImageProcess_LYJ
 
 	struct ImageMatchData
 	{
-		int id1;
-		int id2;
+		int id1 = -1;
+		int id2 = -1;
 
 		//keypoint
 		bool usePointMatch = true;
@@ -85,6 +85,14 @@ namespace ImageProcess_LYJ
 
 		//debug, tmp
 		std::string debugPath = "";
+	};
+
+	struct ImageTriangleData
+	{
+		SLAM_LYJ::Pose3D T21;
+		std::vector<bool> bTris;
+		std::vector<Eigen::Vector3d> Ps; //if justTri==true, Ps is in world, else in camera 1
+		bool justTri = false;
 	};
 
 }

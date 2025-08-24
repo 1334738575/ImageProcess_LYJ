@@ -15,6 +15,7 @@ IMAGEPROCESS_LYJ_API void print_ImageProcess_LYJ_Test();
 
 IMAGEPROCESS_LYJ_API void extractORBFeature(ImageExtractData* _frame);
 IMAGEPROCESS_LYJ_API int matchORBFeature(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult);
+IMAGEPROCESS_LYJ_API bool reconstructTwo(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult, ImageTriangleData* const _triangleResult);
 
 
 }
