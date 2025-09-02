@@ -7,8 +7,8 @@ int main()
 {
     ImageProcess_LYJ::print_ImageProcess_LYJ_Test();
 
-    std::vector<double> camd = {2048, 2048, 765.955, 766.549, 1024, 1024};
-    SLAM_LYJ::PinholeCmera cam(camd);
+    std::vector<double> camd = {765.955, 766.549, 1024, 1024};
+    SLAM_LYJ::PinholeCamera cam(2048, 2048, camd);
 
     std::string dataPath = "D:/tmp/images/";
     std::string dataPath2 = "D:/tmp/texture_data/RT_";
@@ -58,7 +58,7 @@ int main()
     matchResult.debugPath = "D:/tmp/imageProcess/match/";
     ImageProcess_LYJ::matchORBFeature(&frame, &frame2, &matchResult);
 
-    //ImageProcess_LYJ::
+    // ImageProcess_LYJ::
 
     return 0;
 }
