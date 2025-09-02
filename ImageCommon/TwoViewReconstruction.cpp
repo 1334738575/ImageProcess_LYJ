@@ -120,12 +120,12 @@ namespace ImageProcess_LYJ
         if (RH > 0.50) // if(RH>0.40)
         {
             // cout << "Initialization from Homography" << endl;
-            return ReconstructH(vbMatchesInliersH, H, mK, T21, vP3D, vbTriangulated, minParallax, 50);
+            return ReconstructH(vbMatchesInliersH, H, mK, T21, vP3D, vbTriangulated, minParallax, 40);
         }
         else // if(pF_HF>0.6)
         {
             // cout << "Initialization from Fundamental" << endl;
-            return ReconstructF(vbMatchesInliersF, F, mK, T21, vP3D, vbTriangulated, minParallax, 50);
+            return ReconstructF(vbMatchesInliersF, F, mK, T21, vP3D, vbTriangulated, minParallax, 40);
         }
     }
 
@@ -503,7 +503,7 @@ namespace ImageProcess_LYJ
 
         int maxGood = max(nGood1, max(nGood2, max(nGood3, nGood4)));
 
-        int nMinGood = max(static_cast<int>(0.9 * N), minTriangulated);
+        int nMinGood = max(static_cast<int>(0.8 * N), minTriangulated);
 
         int nsimilar = 0;
         if (nGood1 > 0.7 * maxGood)
@@ -889,7 +889,7 @@ namespace ImageProcess_LYJ
         {
             sort(vCosParallax.begin(), vCosParallax.end());
 
-            size_t idx = min(50, int(vCosParallax.size() - 1));
+            size_t idx = min(10, int(vCosParallax.size() - 1));
             parallax = acos(vCosParallax[idx]) * 180 / CV_PI;
         }
         else
