@@ -13,9 +13,9 @@ namespace ImageProcess_LYJ
 
 IMAGEPROCESS_LYJ_API void print_ImageProcess_LYJ_Test();
 
-IMAGEPROCESS_LYJ_API void extractORBFeature(ImageExtractData* _frame);
-IMAGEPROCESS_LYJ_API int matchORBFeature(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult);
-IMAGEPROCESS_LYJ_API bool reconstructTwo(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult, ImageTriangleData* const _triangleResult);
+IMAGEPROCESS_LYJ_API void extractFeature(ImageExtractData* _frame, const ImageExtractOption& _opt= ImageExtractOption());
+IMAGEPROCESS_LYJ_API int matchFeature(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult, const ImageMatchOption& _opt= ImageMatchOption());
+IMAGEPROCESS_LYJ_API bool reconstructTwo(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _matchResult, ImageTriangleData* const _triangleResult, const ImageTriangleOption& _opt= ImageTriangleOption());
 
 
 }

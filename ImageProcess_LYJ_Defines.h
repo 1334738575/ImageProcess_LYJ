@@ -8,6 +8,10 @@
 #include <base/Pose.h>
 #include <opencv2/line_descriptor.hpp>
 #include "ImageCommon/FeatureGrid.h"
+//#include <common/CommonAlgorithm.h>
+#include <base/PreDefine.h>
+#include <IO/SimpleIO.h>
+#include <IO/MeshIO.h>
 
 
 #ifdef WIN32
@@ -24,9 +28,19 @@
 
 namespace ImageProcess_LYJ
 {
+	struct ImageExtractOption
+	{
+		bool usePointFeature = true;
+		int pointExtractMode = 0;
+		
+		bool useLineFeature = false;
+		
+		bool useEdgeFeature = false;
+	};
 	struct ImageExtractData
 	{
 		int id = -1;
+		std::string path = "";
 		cv::Mat img; //Ô­Í¼
 		cv::Mat mask; //ÑÚÄ¤
 		cv::Mat depths; //Éî¶ÈÍ¼
@@ -61,32 +75,47 @@ namespace ImageProcess_LYJ
 		cv::Mat cannyM;
 	};
 
+	struct ImageMatchOption
+	{
+		int pointMatchMode = 0;
+		bool pointMatchCheck = true;
+	};
 	struct ImageMatchData
 	{
 		int id1 = -1;
 		int id2 = -1;
 
+		SLAM_LYJ::Pose3D T21;
+
 		//keypoint
 		bool usePointMatch = true;
 		std::vector<int> match2to1P;
 		std::vector<float> weightsP;
+		int pointMatchSize = 0;
 		//line
 		bool useLineMatch = false;
 		std::vector<int> match2to1L;
 		std::vector<float> weightsL;
+		int lineMatchSize = 0;
 		//edge
 		bool useEdgeMatch = false;
 		std::vector<int> match2to1E;
 		std::vector<float> weightsE;
+		int edgeMatchSize = 0;
 		//patch
 		bool usePatchMatch = false;
 		std::vector<int> match2to1H;
 		std::vector<float> weightsH;
+		int patchMatchSize = 0;
 
 		//debug, tmp
 		std::string debugPath = "";
 	};
 
+	struct ImageTriangleOption
+	{
+		bool justTri = false;
+	};
 	struct ImageTriangleData
 	{
 		SLAM_LYJ::Pose3D T21;
@@ -94,6 +123,9 @@ namespace ImageProcess_LYJ
 		std::vector<Eigen::Vector3d> Ps; //if justTri==true, Ps is in world, else in camera 1
 		bool justTri = false;
 	};
+
+	IMAGEPROCESS_LYJ_API void site2Key(const uint32_t& _s1, const uint32_t& _s2, uint64_t& _k);
+	IMAGEPROCESS_LYJ_API void key2Site(const uint64_t& _k, uint32_t& _s1, uint32_t& _s2);
 
 }
 

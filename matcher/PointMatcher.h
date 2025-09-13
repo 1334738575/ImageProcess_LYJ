@@ -31,6 +31,7 @@ public:
 private:
 	Option opt_;
 	cv::Ptr<cv::DescriptorMatcher> descMatcher_;
+	std::shared_ptr<cv::BFMatcher> bfMatcher_;
 };
 
 

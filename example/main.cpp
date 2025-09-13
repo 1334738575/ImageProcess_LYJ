@@ -35,7 +35,7 @@ int main()
     frame.cam = &cam;
     frame.img = img;
     funcReadTcw(dataPath2 + std::to_string(id1) + ".txt", frame.Tcw);
-    ImageProcess_LYJ::extractORBFeature(&frame);
+    ImageProcess_LYJ::extractFeature(&frame);
     std::cout << "key point size: " << frame.kps_.size() << std::endl;
     // cv::drawKeypoints(img, frame.kps_, img, cv::Scalar(255, 0, 0));
     // cv::imshow("keypoints", img);
@@ -47,7 +47,7 @@ int main()
     frame2.cam = &cam;
     frame2.img = img2;
     funcReadTcw(dataPath2 + std::to_string(id2) + ".txt", frame2.Tcw);
-    ImageProcess_LYJ::extractORBFeature(&frame2);
+    ImageProcess_LYJ::extractFeature(&frame2);
     std::cout << "key point2 size: " << frame2.kps_.size() << std::endl;
     // cv::drawKeypoints(img2, frame2.kps_, img2, cv::Scalar(255, 0, 0));
     // cv::imshow("keypoints2", img2);
@@ -56,7 +56,7 @@ int main()
     ImageProcess_LYJ::ImageMatchData matchResult;
     matchResult.usePointMatch = true;
     matchResult.debugPath = "D:/tmp/imageProcess/match/";
-    ImageProcess_LYJ::matchORBFeature(&frame, &frame2, &matchResult);
+    ImageProcess_LYJ::matchFeature(&frame, &frame2, &matchResult);
 
     // ImageProcess_LYJ::
 

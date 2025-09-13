@@ -196,6 +196,7 @@ namespace ImageProcess_LYJ
         else if (_opt.mode <= 6)
         {
             descMatcher_ = cv::DescriptorMatcher::create(_opt.mode);
+            bfMatcher_ = std::make_shared<cv::BFMatcher>(cv::NORM_HAMMING);
         }
         else
         {
@@ -219,12 +220,42 @@ namespace ImageProcess_LYJ
         }
         else if (opt_.mode <= 6)
         {
+            //Eigen::Matrix3f K1 = _frame1->cam->getK().cast<float>();
+            //Eigen::Matrix3f K2 = _frame2->cam->getK().cast<float>();
             std::vector<cv::DMatch> matches;
-            descMatcher_->match(_frame1->descriptors_, _frame2->descriptors_, matches);
-            for (size_t i = 0; i < matches.size(); ++i)
-            {
-                _result->match2to1P[matches[i].queryIdx] = matches[i].trainIdx;
+            //descMatcher_->match(_frame1->descriptors_, _frame2->descriptors_, matches);
+            bfMatcher_->match(_frame1->descriptors_, _frame2->descriptors_, matches);
+            std::vector<cv::Point2f> ps1, ps2;
+            Eigen::Vector3d pnormal;
+			for (size_t i = 0; i < matches.size(); ++i) {
+    //            _frame1->cam->image2World(_frame1->kps_[matches[i].queryIdx].pt.x, _frame1->kps_[matches[i].queryIdx].pt.y, 1.0, pnormal);
+				//ps1.push_back(cv::Point2f(pnormal(0), pnormal(1)));
+    //            _frame2->cam->image2World(_frame2->kps_[matches[i].trainIdx].pt.x, _frame2->kps_[matches[i].trainIdx].pt.y, 1.0, pnormal);
+				//ps2.push_back(cv::Point2f(pnormal(0), pnormal(1)));
+                ps1.push_back(_frame1->kps_[matches[i].queryIdx].pt);
+                ps2.push_back(_frame2->kps_[matches[i].trainIdx].pt);
             }
+            cv::Mat binliners;
+            cv::Mat F = cv::findFundamentalMat(ps1, ps2, binliners, 8, 1.0);
+            //std::cout << F << std::endl;
+            std::vector<cv::DMatch> matchesInliner;
+            for (int i = 0; i < binliners.rows; ++i) {
+                if (binliners.at<uchar>(i, 0) == 0)
+                    continue;
+                matchesInliner.push_back(matches[i]);
+            }
+            for (size_t i = 0; i < matchesInliner.size(); ++i)
+            {
+                _result->match2to1P[matchesInliner[i].queryIdx] = matchesInliner[i].trainIdx;
+            }
+            std::string savepath = "";
+            if (_result->debugPath != "") {
+                savepath = _result->debugPath + std::to_string(_frame1->id) + "_" + std::to_string(_frame2->id) + ".png";
+                cv::Mat imgMatch;
+                cv::drawMatches(_frame1->img, _frame1->kps_, _frame2->img, _frame2->kps_, matchesInliner, imgMatch);
+                cv::imwrite(savepath, imgMatch);
+            }
+            return matchesInliner.size();
         }
         // fundamental
         else if (opt_.mode == 7)
@@ -234,7 +265,7 @@ namespace ImageProcess_LYJ
             std::string savepath = "";
             if (_result->debugPath != "")
                 savepath = _result->debugPath + std::to_string(_frame1->id) + "_" + std::to_string(_frame2->id) + ".png";
-            matchByF(_frame1->cam->getK(),
+            return matchByF(_frame1->cam->getK(),
                      _frame1->kps_, _frame2->kps_,
                      _frame1->descriptors_, _frame2->descriptors_,
                      _frame1->featureGrid_.get(),
