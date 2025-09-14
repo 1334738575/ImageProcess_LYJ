@@ -3,6 +3,7 @@
 #include "matcher/PointMatcher.h"
 #include "ImageCommon/TwoViewReconstruction.h"
 #include <base/Triangler.h>
+#include <DBow3/Vocabulary.h>
 
 namespace ImageProcess_LYJ
 {
@@ -10,6 +11,45 @@ namespace ImageProcess_LYJ
     IMAGEPROCESS_LYJ_API void print_ImageProcess_LYJ_Test()
     {
         printf("Hello ImageProcess_LYJ!");
+    }
+
+    IMAGEPROCESS_LYJ_API void testDBoW3(std::vector<cv::Mat>& features)
+    {
+        using namespace DBoW3;
+        using namespace std;
+        // branching factor and depth levels
+        const int k = 9;
+        const int L = 3;
+        const DBoW3::WeightingType weight = TF_IDF;
+        const ScoringType score = L1_NORM;
+
+        DBoW3::Vocabulary voc(k, L, weight, score);
+
+        cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
+        voc.create(features);
+        cout << "... done!" << endl;
+        cout << "Vocabulary information: " << endl
+            << voc << endl << endl;
+
+        // lets do something with this vocabulary
+        cout << "Matching images against themselves (0 low, 1 high): " << endl;
+        BowVector v1, v2;
+        for (size_t i = 0; i < features.size(); i++)
+        {
+            voc.transform(features[i], v1);
+            for (size_t j = 0; j < features.size(); j++)
+            {
+                voc.transform(features[j], v2);
+                double score = voc.score(v1, v2);
+                cout << "Image " << i << " vs Image " << j << ": " << score << endl;
+            }
+        }
+
+        // save the vocabulary to disk
+        cout << endl << "Saving vocabulary..." << endl;
+        voc.save("D:/tmp/small_voc.yml.gz");
+        cout << "Done" << endl;
+        return;
     }
 
     IMAGEPROCESS_LYJ_API void extractFeature(ImageExtractData *_frame, const ImageExtractOption& _opt)

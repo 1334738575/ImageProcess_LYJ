@@ -1,7 +1,6 @@
 #include <iostream>
 #include <ImageProcess_LYJ_Defines.h>
 #include <ImageProcess_LYJ_Include.h>
-// #include <thi>
 
 int main()
 {
@@ -58,7 +57,10 @@ int main()
     matchResult.debugPath = "D:/tmp/imageProcess/match/";
     ImageProcess_LYJ::matchFeature(&frame, &frame2, &matchResult);
 
-    // ImageProcess_LYJ::
+    std::vector<cv::Mat> features;
+    features.push_back(frame.descriptors_);
+    features.push_back(frame2.descriptors_);
+    ImageProcess_LYJ::testDBoW3(features);
 
     return 0;
 }

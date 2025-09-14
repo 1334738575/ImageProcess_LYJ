@@ -94,6 +94,11 @@ find_package(OpenCV)
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
 list(APPEND ${PROJECT_NAME}_LIBRARIES ${OpenCV_LIBS})
 list(APPEND ${PROJECT_NAME}_BINARY_DIRS "D:/SLAM_LYJ/dependencies/Opencv/bin\;")
+list(APPEND CMAKE_MODULE_PATH "D:/SLAM_LYJ/dependencies/DBow3/cmake")
+find_package(DBoW3)
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${DBoW3_INCLUDE_DIRS})
+list(APPEND ${PROJECT_NAME}_LIBRARIES ${DBoW3_LIBRARY})
+list(APPEND ${PROJECT_NAME}_BINARY_DIRS "D:/SLAM_LYJ/dependencies/DBow3/bin\;")
 
 if(TARGET COMMON_LYJ)
     list(APPEND ${PROJECT_NAME}_LIBRARIES COMMON_LYJ)
@@ -165,7 +170,6 @@ ${API_NAME} void print_${PROJECT_NAME}_Test()
 endif()
 set(${PROJECT_NAME}_SRC_FILES)
 GroupFiles(${PROJECT_NAME}_SRC_FILES ${CMAKE_CURRENT_LIST_DIR} ".")
-add_subdirectory(thirdParty/DBow3)
 
 # ################################library##################################
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SRC_FILES})
@@ -175,7 +179,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${${PROJECT_NAME}_INCLUDE_DIRS}
-    DBoW3
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${${PROJECT_NAME}_LIBRARIES}
