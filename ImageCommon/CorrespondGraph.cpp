@@ -1,5 +1,5 @@
 #include "CorrespondGraph.h"
-#include <thirdParty/STLPlus/include/file_system.h>
+#include <STLPlus/include/file_system.h>
 
 namespace ImageProcess_LYJ
 {

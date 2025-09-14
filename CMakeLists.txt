@@ -165,6 +165,7 @@ ${API_NAME} void print_${PROJECT_NAME}_Test()
 endif()
 set(${PROJECT_NAME}_SRC_FILES)
 GroupFiles(${PROJECT_NAME}_SRC_FILES ${CMAKE_CURRENT_LIST_DIR} ".")
+add_subdirectory(thirdParty/DBow3)
 
 # ################################library##################################
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SRC_FILES})
@@ -174,6 +175,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${${PROJECT_NAME}_INCLUDE_DIRS}
+    DBoW3
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${${PROJECT_NAME}_LIBRARIES}
