@@ -27,6 +27,7 @@ public:
 
 	virtual void extract(cv::Mat _img, ImageExtractData* _frame) = 0;
 	TYPE getType() { return type_; }
+
 protected:
 	TYPE  type_;
 };

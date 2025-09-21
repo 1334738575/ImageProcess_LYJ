@@ -19,6 +19,7 @@ namespace ImageProcess_LYJ
 	struct IMAGEPROCESS_LYJ_API CorrespondImage
 	{
 		std::vector<std::vector<CorrespondPoint>> corrPoints_;
+		std::vector<bool> bAdd2MapPoints;
 		uint32_t corrNum_ = 0;
 		SLAM_LYJ::SLAM_LYJ_MATH::CompressVV2V<CorrespondPoint> compressCorrPoints_;
 		bool bCompressed_ = false;
@@ -46,9 +47,14 @@ namespace ImageProcess_LYJ
 		const std::shared_ptr<CorrespondImage> getCorresponds(const uint32_t& _id) const;
 		CorrespondPoint* getCorrespondPoint(const uint32_t& _imageId, const uint32_t& _pointId, int& _corrNum);
 		const CorrespondPoint* getCorrespondPoint(const uint32_t& _imageId, const uint32_t& _pointId, int& _corrNum) const;
+		void getCorrespondPoint(const uint32_t& _imageId, const uint32_t& _pointId, std::vector<CorrespondPoint>& _corrPoints, int _turn=1) const;
+		void setCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId);
+		bool isCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId);
 
 		bool writeData(const std::string& _path, bool bCopyImg=false);
 		bool readData(const std::string& _path);
+
+	private:
 
 	private:
 		std::map<uint32_t, std::shared_ptr<ImageExtractData>> imageDatas_;

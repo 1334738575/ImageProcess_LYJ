@@ -81,11 +81,13 @@ namespace ImageProcess_LYJ
 			{
 				correspondDatas_[mtd->id1] = std::make_shared<CorrespondImage>();
 				correspondDatas_[mtd->id1]->corrPoints_.resize(imageDatas_[mtd->id1]->kps_.size());
+				correspondDatas_[mtd->id1]->bAdd2MapPoints.assign(imageDatas_[mtd->id1]->kps_.size(), false);
 			}
 			if (correspondDatas_.find(mtd->id2) == correspondDatas_.end())
 			{
 				correspondDatas_[mtd->id2] = std::make_shared<CorrespondImage>();
 				correspondDatas_[mtd->id2]->corrPoints_.resize(imageDatas_[mtd->id2]->kps_.size());
+				correspondDatas_[mtd->id2]->bAdd2MapPoints.assign(imageDatas_[mtd->id2]->kps_.size(), false);
 			}
 			for (int i = 0; i < mtd->match2to1P.size(); ++i)
 			{
@@ -171,6 +173,51 @@ namespace ImageProcess_LYJ
 		auto& cit = correspondDatas_.at(_imageId);
 		return cit->getCorrespondPoint(_pointId, _corrNum);
 	}
+	void CorrespondGraph::getCorrespondPoint(const uint32_t& _imageId, const uint32_t& _pointId, std::vector<CorrespondPoint>& _corrPoints, int _turn) const
+	{
+		_corrPoints.clear();
+		if (correspondDatas_.count(_imageId) == 0)
+			return;
+		uint64_t keyTmp;
+		uint32_t imgIdTmp, pIdTmp;
+		keyTmp = ((uint64_t)_imageId << 32) | (uint64_t)_pointId;
+		std::unordered_set<uint64_t> keys;
+		std::queue<uint64_t> keyQue;
+		keyQue.push(keyTmp);
+		int corrNumTmp;
+		while (_turn > 0)
+		{
+			int sz = keyQue.size();
+			for (int i = 0; i < sz; ++i) {
+				keyTmp = keyQue.front();
+				keyQue.pop();
+				imgIdTmp = (uint32_t)(keyTmp >> 32);
+				pIdTmp = (uint32_t)(keyTmp & 0xFFFFFFFF);
+				const CorrespondPoint* corrPtr = getCorrespondPoint(imgIdTmp, pIdTmp, corrNumTmp);
+				if (corrNumTmp <= 0)
+					continue;
+				for (int j = 0; j < corrNumTmp; ++j) {
+					//_corrPoints.insert(_corrPoints.end(), corrPtr, corrPtr + corrNumTmp);
+					keyTmp = ((uint64_t)corrPtr[j].imageId_ << 32) | (uint64_t)corrPtr[j].pointId_;
+					if (keys.count(keyTmp))
+						continue;
+					keys.insert(keyTmp);
+					keyQue.push(keyTmp);
+					_corrPoints.emplace_back(corrPtr[j].imageId_, corrPtr[j].pointId_);
+				}
+			}
+			--_turn;
+		}
+	}
+	void CorrespondGraph::setCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId)
+	{
+		correspondDatas_[_imageId]->bAdd2MapPoints[_pointId] = true;
+	}
+	bool CorrespondGraph::isCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId)
+	{
+		return correspondDatas_[_imageId]->bAdd2MapPoints[_pointId];
+	}
+
 	bool CorrespondGraph::writeData(const std::string& _path, bool bCopyImg)
 	{
 		if (imageDatas_.empty())
@@ -207,6 +254,12 @@ namespace ImageProcess_LYJ
 		std::string lmPath = stlplus::create_filespec(writeDir, "LineMatches.txt");
 		if (stlplus::file_exists(lmPath))
 			stlplus::file_delete(lmPath);
+		std::string egPath = stlplus::create_filespec(writeDir, "EdgePoints.txt");
+		if (stlplus::file_exists(egPath))
+			stlplus::file_delete(egPath);
+		std::string egmPath = stlplus::create_filespec(writeDir, "EdgeMatches.txt");
+		if (stlplus::file_exists(egmPath))
+			stlplus::file_delete(egmPath);
 
 		{
 			if (imageDatas_.begin()->second->cam)
@@ -268,6 +321,7 @@ namespace ImageProcess_LYJ
 			}
 			mf.close();
 		}
+		
 		{
 			int imgSize = imageDatas_.size();
 			std::ofstream lf(lPath);
@@ -303,7 +357,7 @@ namespace ImageProcess_LYJ
 			int framePair = matchDatas_.size();
 			std::ofstream lmf(lmPath);
 			lmf << "header" << std::endl;
-			lmf << "framePair" << framePair << std::endl;
+			lmf << "framePair " << framePair << std::endl;
 			lmf << "data" << std::endl;
 			for (auto matchData : matchDatas_) {
 				uint64_t key = matchData.first;
@@ -321,6 +375,49 @@ namespace ImageProcess_LYJ
 				lmf << std::endl;
 			}
 			lmf.close();
+		}
+		
+		{
+			int imgSize = imageDatas_.size();
+			std::ofstream egf(egPath);
+			egf << "header" << std::endl;
+			egf << "frameSize " << imgSize << std::endl;
+			egf << "data" << std::endl;
+			for (auto imgData : imageDatas_)
+			{
+				int egSize = imgData.second->edges_.size();
+				egf << imgData.first << " " << egSize << std::endl;
+				if (egSize == 0)
+					continue;
+				const auto& edges = imgData.second->edges_;
+				for (int i = 0; i < egSize; ++i)
+					egf << edges[i](0) << " " << edges[i](1) << " ";
+				egf << std::endl;
+			}
+			egf.close();
+		}
+		{
+			int framePair = matchDatas_.size();
+			std::ofstream egmf(egmPath);
+			egmf << "header" << std::endl;
+			egmf << "framePair " << framePair << std::endl;
+			egmf << "data" << std::endl;
+			for (auto matchData : matchDatas_) {
+				uint64_t key = matchData.first;
+				uint32_t s1, s2;
+				key2Site(key, s1, s2);
+				int edgeMatchSize = matchData.second->edgeMatchSize;
+				egmf << s1 << " " << s2 << " " << edgeMatchSize << std::endl;
+				if (edgeMatchSize == 0)
+					continue;
+				const auto& egms = matchData.second->match2to1E;
+				int egmSize = egms.size();
+				for (int i = 0; i < egmSize; ++i)
+					if (egms[i] != -1)
+						egmf << i << " " << egms[i] << " ";
+				egmf << std::endl;
+			}
+			egmf.close();
 		}
 
 		return true;
@@ -352,6 +449,12 @@ namespace ImageProcess_LYJ
 			return false;
 		std::string lmPath = stlplus::create_filespec(writeDir, "LineMatches.txt");
 		if (!stlplus::file_exists(lmPath))
+			return false;
+		std::string egPath = stlplus::create_filespec(writeDir, "EdgePoints.txt");
+		if (!stlplus::file_exists(egPath))
+			return false;
+		std::string egmPath = stlplus::create_filespec(writeDir, "EdgeMatches.txt");
+		if (!stlplus::file_exists(egmPath))
 			return false;
 
 		{
@@ -404,8 +507,8 @@ namespace ImageProcess_LYJ
 				matchData->id1 = frameId1;
 				matchData->id2 = frameId2;
 				matchData->pointMatchSize = matchSize;
-				int kp1Size = imageDatas_[frameId1]->kps_.size();
-				matchData->match2to1P.assign(kp1Size, -1);
+				int kpSize = imageDatas_[frameId1]->kps_.size();
+				matchData->match2to1P.assign(kpSize, -1);
 				for (int j = 0; j < matchSize; ++j) {
 					mf >> mId1 >> mId2;
 					matchData->match2to1P[mId1] = mId2;
@@ -452,6 +555,49 @@ namespace ImageProcess_LYJ
 				}
 			}
 			lmf.close();
+		}
+
+		{
+			int imgSize = 0;
+			std::ifstream egf(egPath);
+			std::string header = "";
+			int imgId = 0;
+			int edgePointSize = 0;
+			egf >> header;
+			egf >> header >> imgSize;
+			egf >> header;
+			for (int i = 0; i < imgSize; ++i) {
+				egf >> imgId >> edgePointSize;
+				auto imgData = imageDatas_[imgId];
+				auto& edges = imgData->edges_;
+				edges.resize(edgePointSize);
+				for (int j = 0; j < edgePointSize; ++j) {
+					egf >> edges[j](0) >> edges[j](1);
+				}
+			}
+			egf.close();
+		}
+		{
+			std::ifstream egmf(egmPath);
+			std::string header = "";
+			int framePair = 0, frameId1, frameId2, edgeMatchSize = 0, mId1, mId2;
+			egmf >> header;
+			egmf >> header >> framePair;
+			egmf >> header;
+			uint64_t pairId = 0;
+			for (int i = 0; i < framePair; ++i) {
+				egmf >> frameId1 >> frameId2 >> edgeMatchSize;
+				site2Key(frameId1, frameId2, pairId);
+				auto matchData = matchDatas_[pairId];
+				matchData->edgeMatchSize = edgeMatchSize;
+				int edgeSize = imageDatas_[frameId1]->edges_.size();
+				matchData->match2to1E.assign(edgeSize, -1);
+				for (int j = 0; j < edgeMatchSize; ++j) {
+					egmf >> mId1 >> mId2;
+					matchData->match2to1E[mId1] = mId2;
+				}
+			}
+			egmf.close();
 		}
 
 		generate(imageDatas_, matchDatas_);

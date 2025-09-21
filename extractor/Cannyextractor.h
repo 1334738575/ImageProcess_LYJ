@@ -10,6 +10,8 @@ class CannyExtractor : public ExtractorAbr
 public:
 	struct Option
 	{
+		int mode = 0; // 0:canny, 1:lsd
+		int step = 4;
 		int lowTh = 50;
 		int highTh = 140;
 	};

@@ -1,7 +1,13 @@
 #include "ImageProcess_LYJ_Include.h"
+
 #include "extractor/ORBextractor.h"
+#include "extractor/Cannyextractor.h"
+#include "extractor/LSDextractor.h"
+
 #include "matcher/PointMatcher.h"
+
 #include "ImageCommon/TwoViewReconstruction.h"
+
 #include <base/Triangler.h>
 #include <DBow3/Vocabulary.h>
 
@@ -62,6 +68,18 @@ namespace ImageProcess_LYJ
             extractor.extract(_frame->img, _frame);
             _frame->featureGrid_ = std::make_shared<FeatureGrid>(_frame->img.cols, _frame->img.rows, 50, _frame->kps_);
         }
+        if (_opt.useLineFeature)
+        {
+            LSDExtractor::Option opt;
+            LSDExtractor extractor(opt);
+            extractor.extract(_frame->img, _frame);
+        }
+        if (_opt.useEdgeFeature)
+        {
+            CannyExtractor::Option opt;
+            CannyExtractor extractor(opt);
+            extractor.extract(_frame->img, _frame);
+        }
         return;
     }
 
@@ -70,10 +88,20 @@ namespace ImageProcess_LYJ
         int cnt = 0;
         if (!_matchResult || !_frame1 || !_frame2 || !_matchResult->usePointMatch || !_frame1->usePointFeature || !_frame2->usePointFeature)
             return -1;
-        PointMatcher::Option opt;
-        opt.mode = _opt.pointMatchMode;
-        PointMatcher matcher(opt);
-        cnt = matcher.match(_frame1, _frame2, _matchResult);
+        if (_matchResult->usePointMatch) {
+            PointMatcher::Option opt;
+            opt.mode = _opt.pointMatchMode;
+            PointMatcher matcher(opt);
+            cnt = matcher.match(_frame1, _frame2, _matchResult);
+            ImageTriangleOption triOpt;
+            triOpt.justTri = false;
+            if(cnt > 8)
+                reconstructTwo(_frame1, _frame2, _matchResult, &_matchResult->triDatas, triOpt);
+        }
+        if (_matchResult->useEdgeMatch)
+        {
+
+        }
         return cnt;
     }
 
@@ -81,6 +109,8 @@ namespace ImageProcess_LYJ
     {
         if (!_frame1 || !_frame2 || !_matchResult || !_triangleResult)
             return false;
+        bool ret = true;
+        int cnt = 0;
         if (_opt.justTri)
         {
             SLAM_LYJ::TriangleOption opt;
@@ -104,22 +134,28 @@ namespace ImageProcess_LYJ
                 uvs[0](1) = _frame1->kps_[i].pt.y;
                 uvs[1](0) = _frame2->kps_[_matchResult->match2to1P[i]].pt.x;
                 uvs[1](1) = _frame2->kps_[_matchResult->match2to1P[i]].pt.y;
-                if (triangler.runDirect(uvs, Tcws, cams, _triangleResult->Ps[i]))
+                if (triangler.runDirect(uvs, Tcws, cams, _triangleResult->Ps[i])) {
                     _triangleResult->bTris[i] = true;
+                    ++cnt;
+                }
             }
         }
         else
         {
             TwoViewReconstruction reconstruction(_frame1->cam->getK().cast<float>());
             std::vector<cv::Point3f> P1s;
-            reconstruction.Reconstruct(_frame1->kps_, _frame2->kps_, _matchResult->match2to1P, _triangleResult->T21, P1s, _triangleResult->bTris);
+            ret = reconstruction.Reconstruct(_frame1->kps_, _frame2->kps_, _matchResult->match2to1P, _triangleResult->T21, P1s, _triangleResult->bTris);
             _triangleResult->Ps.resize(P1s.size());
             for (size_t i = 0; i < P1s.size(); ++i)
             {
+                if (_triangleResult->bTris[i])
+                    ++cnt;
                 _triangleResult->Ps[i] = Eigen::Vector3f(P1s[i].x, P1s[i].y, P1s[i].z).cast<double>();
             }
         }
-        return true;
+        _triangleResult->triSize = cnt;
+        _triangleResult->triSuccess = ret;
+        return ret;
     }
 
 }

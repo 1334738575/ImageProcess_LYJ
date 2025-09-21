@@ -1171,6 +1171,18 @@ void ORBExtractor::extract(cv::Mat _img, ImageExtractData* _frame)
 		orb_->detectAndCompute(_img, cv::Mat(), _frame->kps_, _frame->descriptors_);
 	else
 		(*orbSLAM3_)(_img, cv::Mat(), _frame->kps_, _frame->descriptors_, std::vector<int>{ 0, 2000 });
+	if (_frame->depths.empty())
+		return;
+	auto& P3Ds = _frame->kp3Ds_;
+	auto& kps = _frame->kps_;
+	P3Ds.assign(_frame->kps_.size(), Eigen::Vector3f(0,0,0));
+	for (int i = 0; i < kps.size(); ++i)
+	{
+		const float& d = _frame->depths.at<float>(kps[i].pt.y, kps[i].pt.x);
+		if (d == FLT_MAX)
+			continue;
+		_frame->cam->image2World(kps[i].pt.x, kps[i].pt.y, d, P3Ds[i]);
+	}
 }
 
 }

@@ -25,6 +25,8 @@ public:
 	static void convertKeyLine2CVVec4f(const std::vector<cv::line_descriptor::KeyLine>& _keyLines, std::vector<cv::Vec4f>& _lines);
 	static void convertCVVec4f2KeyLine(const std::vector<cv::Vec4f>& _lines, std::vector<cv::line_descriptor::KeyLine>& _keyLines);
 
+	static bool getLine3D(const float& _sx, const float& _sy, const float& _ex, const float& _ey, const cv::Mat& _depths, SLAM_LYJ::CameraModule* _cam, SLAM_LYJ::Line3f& _line3D);
+
 
 private:
 	cv::Ptr<cv::LineSegmentDetector> lsd_;
