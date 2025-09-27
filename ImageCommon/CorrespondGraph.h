@@ -35,6 +35,7 @@ namespace ImageProcess_LYJ
 		~CorrespondGraph();
 
 		bool generate(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas);
+		bool compress();
 		bool getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, SLAM_LYJ::PinholeCamera& _cam);
 
 		bool existImage(const uint32_t& _id) const;
@@ -50,6 +51,7 @@ namespace ImageProcess_LYJ
 		void getCorrespondPoint(const uint32_t& _imageId, const uint32_t& _pointId, std::vector<CorrespondPoint>& _corrPoints, int _turn=1) const;
 		void setCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId);
 		bool isCorrPoint2MapPoint(const uint32_t& _imageId, const uint32_t& _pointId);
+		//bool addCorrPoint(const uint32_t& _imgId1, const uint32_t& _pId1, const uint32_t& _imgId2, const uint32_t& _pId2);
 
 		bool writeData(const std::string& _path, bool bCopyImg=false);
 		bool readData(const std::string& _path);

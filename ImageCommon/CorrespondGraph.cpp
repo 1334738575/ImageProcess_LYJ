@@ -97,10 +97,16 @@ namespace ImageProcess_LYJ
 				correspondDatas_[mtd->id2]->corrPoints_[mtd->match2to1P[i]].emplace_back(mtd->id1, i);
 			}
 		}
-		for (auto& cit : correspondDatas_)
-			cit.second->compress();
 		SLAM_LYJ::PinholeCamera* camera = dynamic_cast<SLAM_LYJ::PinholeCamera*>(imageDatas_.begin()->second->cam);
 		cam_ = *camera;
+		return true;
+	}
+	bool CorrespondGraph::compress()
+	{
+		if (imageDatas_.empty() || correspondDatas_.empty())
+			return false;
+		for (auto& cit : correspondDatas_)
+			cit.second->compress();
 		return true;
 	}
 	bool CorrespondGraph::getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, SLAM_LYJ::PinholeCamera& _cam)
@@ -217,6 +223,10 @@ namespace ImageProcess_LYJ
 	{
 		return correspondDatas_[_imageId]->bAdd2MapPoints[_pointId];
 	}
+	//bool CorrespondGraph::addCorrPoint(const uint32_t& _imgId1, const uint32_t& _pId1, const uint32_t& _imgId2, const uint32_t& _pId2)
+	//{
+	//	return false;
+	//}
 
 	bool CorrespondGraph::writeData(const std::string& _path, bool bCopyImg)
 	{

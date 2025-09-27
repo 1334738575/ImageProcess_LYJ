@@ -70,4 +70,80 @@ namespace ImageProcess_LYJ
             }
         }
     }
+
+
+    FeatureGridFromORB::FeatureGridFromORB(const int _w, const int _h, std::vector<cv::KeyPoint>* _kps, const int _resolution)
+        :w_(_w), h_(_h), resolution_(_resolution), kps_(_kps)
+    {
+        invResolution_ = 1.0f / (float)resolution_;
+        wGrid_ = ceil((float)w_ / (float)resolution_);
+        hGrid_ = ceil((float)h_ / (float)resolution_);
+		mGrid_.resize(wGrid_);
+		for (int i = 0; i < wGrid_; i++)
+			mGrid_[i].resize(hGrid_);
+		const int N = kps_->size();
+		for (int i = 0; i < N; i++)
+		{
+			const cv::KeyPoint& kp = kps_->at(i);
+			int nGridPosX, nGridPosY;
+			nGridPosX = (int)round((kp.pt.x) * invResolution_);
+			nGridPosY = (int)round((kp.pt.y) * invResolution_);
+			if (nGridPosX < 0 || nGridPosX >= wGrid_ || nGridPosY < 0 || nGridPosY >= hGrid_)
+				continue;
+			mGrid_[nGridPosX][nGridPosY].push_back(i);
+		}
+    }
+    std::vector<size_t> FeatureGridFromORB::GetFeaturesInArea(const float& x, const float& y, const float& r) const
+    {
+        int N = kps_->size();
+        std::vector<size_t> vIndices;
+        vIndices.reserve(N);
+
+        float factorX = r;
+        float factorY = r;
+
+        const int nMinCellX = std::max(0, (int)floor((x - factorX) * invResolution_));
+        if (nMinCellX >= wGrid_)
+            return vIndices;
+        const int nMaxCellX = std::min((int)wGrid_ - 1, (int)ceil((x + factorX) * invResolution_));
+        if (nMaxCellX < 0)
+            return vIndices;
+        const int nMinCellY = std::max(0, (int)floor((y - factorY) * invResolution_));
+        if (nMinCellY >= hGrid_)
+            return vIndices;
+        const int nMaxCellY = std::min((int)hGrid_ - 1, (int)ceil((y + factorY) * invResolution_));
+        if (nMaxCellY < 0)
+            return vIndices;
+
+        for (int ix = nMinCellX; ix <= nMaxCellX; ix++)
+        {
+            for (int iy = nMinCellY; iy <= nMaxCellY; iy++)
+            {
+                const std::vector<size_t> vCell = mGrid_[ix][iy];
+                if (vCell.empty())
+                    continue;
+                for (size_t j = 0, jend = vCell.size(); j < jend; j++)
+                {
+                    const cv::KeyPoint& kpUn = kps_->at(vCell[j]);
+                    const float distx = kpUn.pt.x - x;
+                    const float disty = kpUn.pt.y - y;
+                    if (fabs(distx) < factorX && fabs(disty) < factorY)
+                        vIndices.push_back(vCell[j]);
+                }
+            }
+        }
+
+        return vIndices;
+    }
+    bool FeatureGridFromORB::PosInGrid(const cv::KeyPoint& kp, int& posX, int& posY)
+    {
+        posX = round((kp.pt.x) * invResolution_);
+        posY = round((kp.pt.y) * invResolution_);
+
+        //Keypoint's coordinates are undistorted, which could cause to go out of the image
+        if (posX < 0 || posX >= wGrid_ || posY < 0 || posY >= hGrid_)
+            return false;
+
+        return true;
+    }
 }

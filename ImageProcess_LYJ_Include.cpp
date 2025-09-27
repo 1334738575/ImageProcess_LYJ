@@ -67,6 +67,7 @@ namespace ImageProcess_LYJ
             ORBExtractor extractor(opt);
             extractor.extract(_frame->img, _frame);
             _frame->featureGrid_ = std::make_shared<FeatureGrid>(_frame->img.cols, _frame->img.rows, 50, _frame->kps_);
+            _frame->featureGridFromORB_ = std::make_shared<FeatureGridFromORB>(_frame->cam->wide(), _frame->cam->height(), &_frame->kps_);
         }
         if (_opt.useLineFeature)
         {
@@ -93,10 +94,12 @@ namespace ImageProcess_LYJ
             opt.mode = _opt.pointMatchMode;
             PointMatcher matcher(opt);
             cnt = matcher.match(_frame1, _frame2, _matchResult);
-            ImageTriangleOption triOpt;
-            triOpt.justTri = false;
-            if(cnt > 8)
-                reconstructTwo(_frame1, _frame2, _matchResult, &_matchResult->triDatas, triOpt);
+            if (_opt.bTriangle) {
+                ImageTriangleOption triOpt;
+                triOpt.justTri = false;
+                if(cnt > 8)
+                    reconstructTwo(_frame1, _frame2, _matchResult, &_matchResult->triDatas, triOpt);
+            }
         }
         if (_matchResult->useEdgeMatch)
         {

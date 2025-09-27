@@ -45,6 +45,7 @@ namespace ImageProcess_LYJ
 
 	struct ImageMatchOption
 	{
+		bool bTriangle = true;
 		bool usePointMatch = true;
 		int pointMatchMode = 0;
 		bool pointMatchCheck = true;
@@ -122,6 +123,7 @@ namespace ImageProcess_LYJ
 		//std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::KdTree2d> kdtree_ = nullptr;
 		std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> grid_ = nullptr;
 		std::shared_ptr<FeatureGrid> featureGrid_ = nullptr;
+		std::shared_ptr<FeatureGridFromORB> featureGridFromORB_ = nullptr;
 		//line
 		bool useLineFeature = false;
 		std::vector<cv::Vec4f> vecLines_;

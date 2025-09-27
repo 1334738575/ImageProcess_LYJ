@@ -1144,7 +1144,7 @@ ORBExtractor::ORBExtractor(Option _opt)
 	: ExtractorAbr(ExtractorAbr::TYPE::OBR), opt_(_opt)
 {
 	orb_ = cv::ORB::create();
-	orbSLAM3_ = std::make_shared<FROM_ORB_SLAM3::ORBextractor>(2000, 1.2, 8, 20, 7);
+	orbSLAM3_ = std::make_shared<FROM_ORB_SLAM3::ORBextractor>(4000, 1.2, 8, 20, 7);
 }
 
 ORBExtractor::~ORBExtractor()

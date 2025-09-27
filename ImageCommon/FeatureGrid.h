@@ -34,6 +34,27 @@ namespace ImageProcess_LYJ
 	    int max_col;
 	    std::unordered_map<int, std::vector<size_t>> grid;
 	};
+
+	class FEATUREGRID_LYJ_API FeatureGridFromORB
+	{
+	public:
+		FeatureGridFromORB() = delete;
+		FeatureGridFromORB(const int _w, const int _h, std::vector<cv::KeyPoint>* _kps, const int _resolution=20);
+		~FeatureGridFromORB() {};
+
+		std::vector<size_t> GetFeaturesInArea(const float& x, const float& y, const float& r) const;
+		bool PosInGrid(const cv::KeyPoint& kp, int& posX, int& posY);
+
+	private:
+		std::vector<std::vector<std::vector<std::size_t>>> mGrid_;
+		const int w_;
+		int wGrid_;
+		const int h_;
+		int hGrid_;
+		const int resolution_;
+		float invResolution_;
+		std::vector<cv::KeyPoint>* kps_ = nullptr;
+	};
 }
 
 
