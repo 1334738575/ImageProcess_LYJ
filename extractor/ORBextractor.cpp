@@ -1143,8 +1143,8 @@ namespace ImageProcess_LYJ{
 ORBExtractor::ORBExtractor(Option _opt)
 	: ExtractorAbr(ExtractorAbr::TYPE::OBR), opt_(_opt)
 {
-	orb_ = cv::ORB::create();
-	orbSLAM3_ = std::make_shared<FROM_ORB_SLAM3::ORBextractor>(4000, 1.2, 8, 20, 7);
+	orb_ = cv::ORB::create(8192);
+	orbSLAM3_ = std::make_shared<FROM_ORB_SLAM3::ORBextractor>(8192, 1.2, 8, 20, 7);
 }
 
 ORBExtractor::~ORBExtractor()
@@ -1170,7 +1170,7 @@ void ORBExtractor::extract(cv::Mat _img, ImageExtractData* _frame)
 	if(false)
 		orb_->detectAndCompute(_img, cv::Mat(), _frame->kps_, _frame->descriptors_);
 	else
-		(*orbSLAM3_)(_img, cv::Mat(), _frame->kps_, _frame->descriptors_, std::vector<int>{ 0, 2000 });
+		(*orbSLAM3_)(_img, cv::Mat(), _frame->kps_, _frame->descriptors_, std::vector<int>{ 0, 2048 });
 	if (_frame->depths.empty())
 		return;
 	auto& P3Ds = _frame->kp3Ds_;

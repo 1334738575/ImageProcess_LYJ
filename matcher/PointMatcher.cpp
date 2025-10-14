@@ -1,5 +1,7 @@
 #include "PointMatcher.h"
 #include <DBoW3/Vocabulary.h>
+#include "ImageCommon/FundamentalEstimator.h"
+#include "ImageCommon/HomographyEstimator.h"
 
 namespace ImageProcess_LYJ
 {
@@ -434,28 +436,61 @@ namespace ImageProcess_LYJ
         }
 
         // fundamental
-        if (cnt > 0)
+        if (cnt > 0 && opt_.check)
         {
-            std::vector<cv::Point2f> ps1, ps2;
-            std::vector<int> id1s, id2s;
-            for (size_t i = 0; i < kpSize1; ++i) {
-                if (_result->match2to1P[i] == -1)
-                    continue;
-                ps1.push_back(_frame1->kps_[i].pt);
-                ps2.push_back(_frame2->kps_[_result->match2to1P[i]].pt);
-                id1s.push_back(i);
-                id2s.push_back(_result->match2to1P[i]);
+            std::vector<cv::KeyPoint>& kps1 = _frame1->kps_;
+            std::vector<cv::KeyPoint>& kps2 = _frame1->kps_;
+            for (int it = 0; it < 1; ++it) {
+                std::vector<Eigen::Vector2i> matches2RANSAC;
+                matches2RANSAC.reserve(cnt);
+                for (int i = 0; i < _result->match2to1P.size(); ++i)
+                {
+                    if (_result->match2to1P[i] == -1)
+                        continue;
+                    matches2RANSAC.push_back(Eigen::Vector2i(i, _result->match2to1P[i]));
+                }
+                //RANSACFundamental ransacF(&kps1, &kps2, matches2RANSAC, 0.05, 0.5, 8);
+                //std::vector<float> errs;
+                //std::vector<bool> inliners;
+                //Eigen::Matrix3f F21;
+                //std::vector<int> bestSample;
+                //double ratio = ransacF.run(cnt, errs, inliners, F21, bestSample);
+                RANSACHomography ransacH(&kps1, &kps2, matches2RANSAC, 4, 0.5, 4);
+                std::vector<float> errs;
+                std::vector<bool> inliners;
+                Eigen::Matrix3f H21;
+                std::vector<int> bestSample;
+                double ratio = ransacH.run(cnt, errs, inliners, H21, bestSample);
+                _result->match2to1P.assign(kpSize1, -1);
+                for (int i = 0; i < inliners.size(); ++i)
+                {
+                    if (inliners[i])
+                        _result->match2to1P[matches2RANSAC[i](0)] = matches2RANSAC[i](1);
+                    else
+                        --cnt;
+                }
             }
-            cv::Mat binliners;
-            cv::Mat F = cv::findFundamentalMat(ps1, ps2, binliners, 8, 1.0);
-            cnt = 0;
-            _result->match2to1P.assign(kpSize1, -1);
-            for (int i = 0; i < binliners.rows; ++i) {
-                if (binliners.at<uchar>(i, 0) == 0)
-                    continue;
-                _result->match2to1P[id1s[i]] = id2s[i];
-                ++cnt;
-            }
+
+            //std::vector<cv::Point2f> ps1, ps2;
+            //std::vector<int> id1s, id2s;
+            //for (size_t i = 0; i < kpSize1; ++i) {
+            //    if (_result->match2to1P[i] == -1)
+            //        continue;
+            //    ps1.push_back(_frame1->kps_[i].pt);
+            //    ps2.push_back(_frame2->kps_[_result->match2to1P[i]].pt);
+            //    id1s.push_back(i);
+            //    id2s.push_back(_result->match2to1P[i]);
+            //}
+            //cv::Mat binliners;
+            //cv::Mat F = cv::findFundamentalMat(ps1, ps2, binliners, 8, 1.0);
+            //cnt = 0;
+            //_result->match2to1P.assign(kpSize1, -1);
+            //for (int i = 0; i < binliners.rows; ++i) {
+            //    if (binliners.at<uchar>(i, 0) == 0)
+            //        continue;
+            //    _result->match2to1P[id1s[i]] = id2s[i];
+            //    ++cnt;
+            //}
         }
         _result->pointMatchSize = cnt;
         return cnt;

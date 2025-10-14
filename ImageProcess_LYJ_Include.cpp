@@ -92,6 +92,7 @@ namespace ImageProcess_LYJ
         if (_matchResult->usePointMatch) {
             PointMatcher::Option opt;
             opt.mode = _opt.pointMatchMode;
+            opt.check = _opt.pointMatchCheck;
             PointMatcher matcher(opt);
             cnt = matcher.match(_frame1, _frame2, _matchResult);
             if (_opt.bTriangle) {

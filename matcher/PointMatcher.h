@@ -23,6 +23,7 @@ public:
 		int mode = 1;
 		//float distTh = 25;
 		float squareDThInMesh = 0.01;
+		bool check = true;
 	};
 	PointMatcher(Option _opt);
 	~PointMatcher();

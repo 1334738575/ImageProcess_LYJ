@@ -2,16 +2,23 @@
 
 namespace ImageProcess_LYJ
 {
-	bool RANSACFundamental::calErr(const Eigen::Matrix3f& mdl, const int& data, float& err)
+	int RANSACFundamental::calErr(const Eigen::Matrix3f& _mdl, const std::vector<int>& _datas, std::vector<float>& _errs, std::vector<bool>& _bInls)
 	{
         if (m_kps1 == nullptr || m_kps2 == nullptr)
             return false;
-        Eigen::Vector3f p1(m_kps1->at(data).pt.x, m_kps1->at(data).pt.y, 1);
-        Eigen::Vector3f p2(m_kps2->at(data).pt.x, m_kps2->at(data).pt.y, 1);
-        err = std::abs(p2.transpose() * mdl * p1);
-        if (err < m_errTh)
-            return true;
-		return false;
+        _errs.assign(_datas.size(), 0);
+        _bInls.assign(_datas.size(), false);
+        int cnt = 0;
+        for (int i = 0; i < _datas.size(); ++i) {
+            Eigen::Vector3f p1(m_kps1->at(m_matches[_datas[i]](0)).pt.x, m_kps1->at(m_matches[_datas[i]](0)).pt.y, 1);
+            Eigen::Vector3f p2(m_kps2->at(m_matches[_datas[i]](1)).pt.x, m_kps2->at(m_matches[_datas[i]](1)).pt.y, 1);
+            _errs[i] = std::abs(p2.transpose() * _mdl * p1);
+            if (_errs[i] > m_errTh)
+                continue;
+            _bInls[i] =  true;
+            ++cnt;
+        }
+		return cnt;
 	}
     static void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d>& points,
         std::vector<Eigen::Vector2d>* normed_points,
@@ -46,7 +53,7 @@ namespace ImageProcess_LYJ
                 (*normed_from_orig * points[i].homogeneous()).hnormalized();
         }
     }
-	bool RANSACFundamental::calMdl(const std::vector<const int*>& samples, Eigen::Matrix3f& mdl)
+	bool RANSACFundamental::calMdl(const std::vector<int>& samples, Eigen::Matrix3f& mdl)
 	{
         if (m_kps1 == nullptr || m_kps2 == nullptr)
             return false;
@@ -57,15 +64,18 @@ namespace ImageProcess_LYJ
         std::vector<Eigen::Vector2d> points2(sz);
         for (int i = 0; i < sz; ++i)
         {
-            points1[i] = Eigen::Vector2d(m_kps1->at(*samples[i]).pt.x, m_kps1->at(*samples[i]).pt.y);
-            points2[i] = Eigen::Vector2d(m_kps2->at(*samples[i]).pt.x, m_kps2->at(*samples[i]).pt.y);
+            points1[i] = Eigen::Vector2d(m_kps1->at(m_matches[samples[i]](0)).pt.x, m_kps1->at(m_matches[samples[i]](0)).pt.y);
+            points2[i] = Eigen::Vector2d(m_kps2->at(m_matches[samples[i]](1)).pt.x, m_kps2->at(m_matches[samples[i]](1)).pt.y);
         }
-        std::vector<Eigen::Vector2d> normed_points1;
-        std::vector<Eigen::Vector2d> normed_points2;
-        Eigen::Matrix3d normed_from_orig1;
-        Eigen::Matrix3d normed_from_orig2;
-        CenterAndNormalizeImagePoints(points1, &normed_points1, &normed_from_orig1);
-        CenterAndNormalizeImagePoints(points2, &normed_points2, &normed_from_orig2);
+        std::vector<Eigen::Vector2d>& normed_points1 = points1;
+        std::vector<Eigen::Vector2d>& normed_points2 = points2;
+
+        //std::vector<Eigen::Vector2d> normed_points1;
+        //std::vector<Eigen::Vector2d> normed_points2;
+        //Eigen::Matrix3d normed_from_orig1;
+        //Eigen::Matrix3d normed_from_orig2;
+        //CenterAndNormalizeImagePoints(points1, &normed_points1, &normed_from_orig1);
+        //CenterAndNormalizeImagePoints(points2, &normed_points2, &normed_from_orig2);
 
         // Setup homogeneous linear equation as x2' * F * x1 = 0.
         Eigen::Matrix<double, Eigen::Dynamic, 9> A(points1.size(), 9);
@@ -100,7 +110,8 @@ namespace ImageProcess_LYJ
         const Eigen::Matrix3d F =
             svd.matrixU() * singular_values.asDiagonal() * svd.matrixV().transpose();
 
-        mdl = (normed_from_orig2.transpose() * F * normed_from_orig1).cast<float>();
+        mdl = F.cast<float>();
+        //mdl = (normed_from_orig2.transpose() * F * normed_from_orig1).cast<float>();
 		return true;
 	}
 }
