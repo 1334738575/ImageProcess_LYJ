@@ -12,32 +12,32 @@ namespace ImageProcess_LYJ
         _bInls.assign(_datas.size(), false);
         int cnt = 0;
 
-        const double& H_00 = _mdl(0, 0);
-        const double& H_01 = _mdl(0, 1);
-        const double& H_02 = _mdl(0, 2);
-        const double& H_10 = _mdl(1, 0);
-        const double& H_11 = _mdl(1, 1);
-        const double& H_12 = _mdl(1, 2);
-        const double& H_20 = _mdl(2, 0);
-        const double& H_21 = _mdl(2, 1);
-        const double& H_22 = _mdl(2, 2);
+        const float& H_00 = _mdl(0, 0);
+        const float& H_01 = _mdl(0, 1);
+        const float& H_02 = _mdl(0, 2);
+        const float& H_10 = _mdl(1, 0);
+        const float& H_11 = _mdl(1, 1);
+        const float& H_12 = _mdl(1, 2);
+        const float& H_20 = _mdl(2, 0);
+        const float& H_21 = _mdl(2, 1);
+        const float& H_22 = _mdl(2, 2);
 
         for (int i = 0; i < _datas.size(); ++i) {
-            const double s_0 = m_kps1->at(m_matches[_datas[i]](0)).pt.x;
-            const double s_1 = m_kps1->at(m_matches[_datas[i]](0)).pt.y;
-            const double d_0 = m_kps2->at(m_matches[_datas[i]](1)).pt.x;
-            const double d_1 = m_kps2->at(m_matches[_datas[i]](1)).pt.y;
+            const float& s_0 = m_kps1->at(m_matches[_datas[i]](0)).pt.x;
+            const float& s_1 = m_kps1->at(m_matches[_datas[i]](0)).pt.y;
+            const float& d_0 = m_kps2->at(m_matches[_datas[i]](1)).pt.x;
+            const float& d_1 = m_kps2->at(m_matches[_datas[i]](1)).pt.y;
 
-            const double pd_0 = H_00 * s_0 + H_01 * s_1 + H_02;
-            const double pd_1 = H_10 * s_0 + H_11 * s_1 + H_12;
-            const double pd_2 = H_20 * s_0 + H_21 * s_1 + H_22;
+            const float pd_0 = H_00 * s_0 + H_01 * s_1 + H_02;
+            const float pd_1 = H_10 * s_0 + H_11 * s_1 + H_12;
+            const float pd_2 = H_20 * s_0 + H_21 * s_1 + H_22;
 
-            const double inv_pd_2 = 1.0 / pd_2;
-            const double dd_0 = d_0 - pd_0 * inv_pd_2;
-            const double dd_1 = d_1 - pd_1 * inv_pd_2;
+            const float inv_pd_2 = 1.0 / pd_2;
+            const float dd_0 = d_0 - pd_0 * inv_pd_2;
+            const float dd_1 = d_1 - pd_1 * inv_pd_2;
 
             _errs[i] = dd_0 * dd_0 + dd_1 * dd_1;
-            if (_errs[i] > m_errTh)
+            if (_errs[i] > m_errTh*m_errTh)
                 continue;
             _bInls[i] = true;
             ++cnt;
