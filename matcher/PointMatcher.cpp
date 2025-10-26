@@ -439,7 +439,7 @@ namespace ImageProcess_LYJ
         if (cnt > 0 && opt_.check)
         {
             std::vector<cv::KeyPoint>& kps1 = _frame1->kps_;
-            std::vector<cv::KeyPoint>& kps2 = _frame1->kps_;
+            std::vector<cv::KeyPoint>& kps2 = _frame2->kps_;
             for (int it = 0; it < 1; ++it) {
                 std::vector<Eigen::Vector2i> matches2RANSAC;
                 matches2RANSAC.reserve(cnt);
@@ -455,7 +455,7 @@ namespace ImageProcess_LYJ
                 //Eigen::Matrix3f F21;
                 //std::vector<int> bestSample;
                 //double ratio = ransacF.run(cnt, errs, inliners, F21, bestSample);
-                RANSACHomography ransacH(&kps1, &kps2, matches2RANSAC, 4, 0.5, 4);
+                RANSACHomography ransacH(&kps1, &kps2, matches2RANSAC, 30, 0.5, 4);
                 std::vector<float> errs;
                 std::vector<bool> inliners;
                 Eigen::Matrix3f H21;

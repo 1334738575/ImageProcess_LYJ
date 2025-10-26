@@ -117,8 +117,8 @@ namespace ImageProcess_LYJ
         int cnt = 0;
         if (_opt.justTri)
         {
-            SLAM_LYJ::TriangleOption opt;
-            SLAM_LYJ::Triangler<double> triangler(opt);
+            SLAM_LYJ::Point3DTriangleOption opt;
+            SLAM_LYJ::Point3DTriangler<double> triangler(opt);
             int sz = _frame1->kps_.size();
             _triangleResult->bTris.assign(sz, false);
             _triangleResult->Ps.resize(sz, Eigen::Vector3d::Zero());
