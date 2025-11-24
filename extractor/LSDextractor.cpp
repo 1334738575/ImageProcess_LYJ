@@ -94,7 +94,7 @@ bool LSDExtractor::getLine3D(const float& _sx, const float& _sy, const float& _e
     ransac.setCallBack(funcCalErr, funcCalMod);
 
     std::vector<Eigen::Vector2i> pixs;
-    SLAM_LYJ::bresenhamLine(_sx, _sy, _ex, _ey, pixs);
+    SLAM_LYJ::Line2d::bresenhamLine(_sx, _sy, _ex, _ey, pixs);
     std::vector<Eigen::Vector3f> P3Ds;
     P3Ds.reserve(pixs.size());
     Eigen::Vector3f PTmp;
