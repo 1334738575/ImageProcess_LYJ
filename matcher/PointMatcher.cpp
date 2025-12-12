@@ -72,51 +72,34 @@ namespace ImageProcess_LYJ
         return dist;
     }
     static int matchByF(
-        const Eigen::Matrix3d &K1,
+        const Eigen::Matrix3d &K1,const Eigen::Matrix3d &K2,
         const std::vector<cv::KeyPoint> &features1, const std::vector<cv::KeyPoint> &features2,
         const cv::Mat &desc1, const cv::Mat &desc2,
         FeatureGrid *grid1,
-        const Eigen::Matrix3d &rota, const Eigen::Vector3d &trans,
-        std::vector<int> &results,
-        // std::vector<std::pair<int, int>>& results,
-        double th = 50, double nnTh = 0.6,
-        cv::Mat img1 = cv::Mat(), cv::Mat img2 = cv::Mat(),
-        std::string savepath = "")
+        SLAM_LYJ::Pose3D& _Tcw1, SLAM_LYJ::Pose3D& _Tcw2,
+        std::vector<Eigen::Vector3f>& _P3Ds1, std::vector<Eigen::Vector3f>& _P3Ds2, const float& _squareDistTh,
+        std::vector<int> &_matches2to1,
+        double th = 50, double nnTh = 0.6)
     {
         int cnt = 0;
-        auto &matches = results;
+        auto &matches = _matches2to1;
         matches.assign(features1.size(), -1);
-        // std::vector<int> matches(features1.size(), -1);
         std::vector<int> matchesDist(features1.size(), -1);
 
-        //// debug
-        //std::vector<Eigen::Vector4d> linePoints(features2.size());
-        //int downTimes = 1;
-        //int downTimesTmp = downTimes;
-        //cv::Mat mmatch(img1.rows / downTimes, (img1.cols + img2.cols) / downTimes, CV_8UC1);
-        //cv::Rect rect1(0, 0, img1.cols / downTimes, img1.rows / downTimes);
-        //cv::Rect rect2(img2.cols / downTimes, 0, img1.cols / downTimes, img1.rows / downTimes);
-        //cv::Mat imgDown, imgDown2;
-        //imgDown = img1.clone();
-        //imgDown2 = img2.clone();
-        //if (downTimesTmp != 1)
-        //{
-        //    while (downTimesTmp / 2 != 1)
-        //    {
-        //        cv::pyrDown(imgDown, imgDown);
-        //        cv::pyrDown(imgDown2, imgDown2);
-        //        downTimesTmp /= 2;
-        //    }
-        //}
-        //imgDown.copyTo(mmatch(rect1));
-        //imgDown2.copyTo(mmatch(rect2));
-
         // compute F matrix
+        SLAM_LYJ::Pose3D T12 = _Tcw1 * Tcw2.inversed();
+        const Eigen::Matrix3d& rota = T12.getR();
+        const Eigen::Vector3d& trans = T12.gett();
         Eigen::Matrix3d t_mul;
         t_mul << 0, -1 * trans(2), trans(1),
             trans(2), 0, -1 * trans(0),
             -1 * trans(1), trans(0), 0;
-        Eigen::Matrix3d F = K1.inverse().transpose() * t_mul * rota * K1.inverse();
+        Eigen::Matrix3d F = K1.inverse().transpose() * t_mul * rota * K2.inverse();
+
+        SLAM_LYJ::Pose3D Twc1 = _Tcw1.inversed();
+        SLAM_LYJ::Pose3D Twc2 = _Tcw2.inversed();
+        Eigen::Vector3f Pw1;
+        Eigen::Vector3f Pw2;
 
         for (size_t i = 0; i < features2.size(); ++i)
         {
@@ -126,18 +109,16 @@ namespace ImageProcess_LYJ
             // compute line
             Eigen::Vector3d line = F * p2;
 
+            if (!_P3Ds1.empty() && !_P3Ds2.empty() && i < _P3Ds2.size() && _P3Ds2[i](2) > 0)
+                Pw2 = Twc2 * _P3Ds2[i];
+            
             // get ids
             std::vector<size_t> ids;
             grid1->getKeypointIdsAround(line, ids);
             if (ids.empty())
             {
-                // std::cout<<"not find ids around line, point("<<p2(0)<<","<<p2(1)<<")"<<std::endl;
                 continue;
             }
-
-            // //debug
-            // cv::Mat matLine = mmatch.clone();
-            // // // std::cout<<"ids around line, point("<<p2(0)<<","<<p2(1)<<")"<<std::endl;
 
             // match
             int best_id = -1;
@@ -146,10 +127,13 @@ namespace ImageProcess_LYJ
             int second_dist = 128 * 255;
             for (size_t j = 0; j < ids.size(); ++j)
             {
-
-                // // //debug
-                // cv::Point2d p1(features->at(ids[j]).x/downTimes, features->at(ids[j]).y/downTimes);
-                // cv::circle(matLine, p1, 1, cv::Scalar(255,0,0));
+                if (!_P3Ds1.empty() && !_P3Ds2.empty() && ids[j] < _P3Ds1.size() && _P3Ds1[ids[j]](2) > 0 && i < _P3Ds2.size() && _P3Ds2[i](2) > 0)
+                {
+                    Pw1 = Twc1 * _P3Ds1[ids[j]];
+                    //std::cout << (Pw1 - Pw2).squaredNorm() << std::endl;
+                    if ((Pw1 - Pw2).squaredNorm() > _squareDistTh)
+                        continue;
+                }
 
                 // compute distance
                 const cv::Mat &des1 = desc1.row(ids[j]);
@@ -170,16 +154,6 @@ namespace ImageProcess_LYJ
                 }
             }
 
-            // //debug
-            // // std::cout<<"best dist:"<<best_dist<<" second dist:"<<second_dist<<std::endl;
-            // cv::line(matLine, cv::Point(linePoints[i](0)/downTimes,linePoints[i](1)/downTimes),
-            //                     cv::Point(linePoints[i](2)/downTimes,linePoints[i](3)/downTimes),
-            //                     cv::Scalar(0,255,255),1);
-            // cv::Point2d p((features2->at(i).x+img2.cols)/downTimes, features2->at(i).y/downTimes);
-            // cv::circle(matLine, p, 3, cv::Scalar(255,0,255));
-            // // cv::imshow("F line", matLine);
-            // // cv::waitKey();
-
             // record
             if (best_dist > th || second_dist * nnTh < best_dist)
                 continue;
@@ -189,11 +163,6 @@ namespace ImageProcess_LYJ
             }
             matches[best_id] = i;
             matchesDist[best_id] = best_dist;
-
-            // cv::Point2d pbest(features->at(best_id).x/downTimes, features->at(best_id).y/downTimes);
-            // cv::circle(matLine, pbest, 3, cv::Scalar(255,0,255));
-            // // cv::imshow("F line", matLine);
-            // // cv::waitKey();
         }
 
         for (size_t ind = 0; ind < matches.size(); ++ind)
@@ -201,39 +170,7 @@ namespace ImageProcess_LYJ
             if (matches[ind] == -1)
                 continue;
             ++cnt;
-            // results.push_back({ ind, matches[ind] });
         }
-
-        //// debug
-        ////  for(size_t ind=0;ind<features2->size();++ind){
-        ////      // std::cout<<"draw line:"<<ind<<std::endl;
-        ////      cv::Mat matLine = mmatch.clone();
-        ////      cv::line(matLine, cv::Point(linePoints[ind](0)/downTimes,linePoints[ind](1)/downTimes),
-        ////                      cv::Point(linePoints[ind](2)/downTimes,linePoints[ind](3)/downTimes),
-        ////                      cv::Scalar(0,255,255),1);
-        ////      cv::Point2d p((features2->at(ind).x+img2.cols)/downTimes, features2->at(ind).y/downTimes);
-        ////      cv::circle(matLine, p, 3, cv::Scalar(255,0,255));
-        ////      cv::imshow("F line", matLine);
-        ////      cv::waitKey();
-        ////  }
-        //for (size_t ind = 0; ind < matches.size(); ++ind)
-        //{
-        //    if (matches[ind] == -1)
-        //        continue;
-        //    cv::Point2d p1(features1.at(ind).pt.x / downTimes, features1.at(ind).pt.y / downTimes);
-        //    cv::Point2d p2((features2.at(matches[ind]).pt.x + img2.cols) / downTimes, features2.at(matches[ind]).pt.y / downTimes);
-        //    cv::circle(mmatch, p1, 3, cv::Scalar(255));
-        //    cv::circle(mmatch, p2, 3, cv::Scalar(255));
-        //    cv::line(mmatch, p1, p2, cv::Scalar(255), 1);
-        //}
-        //// cv::namedWindow("test match", cv::WINDOW_NORMAL);
-        //// cv::imshow("test match", mmatch);
-        //// cv::waitKey(1);
-        //if (savepath != "")
-        //{
-        //    // std::string savepath = "/home/yang/imgdebug/match/" + std::to_string(imgi++) + ".png";
-        //    cv::imwrite(savepath, mmatch);
-        //}
 
         return cnt;
     }
