@@ -55,8 +55,10 @@ namespace ImageProcess_LYJ
 
 		bool writeData(const std::string& _path, bool bCopyImg=false);
 		bool readData(const std::string& _path);
+		void dump(const std::string& _path);
 
 	private:
+		void convertMatches2WinData2D(const int64_t _ind, const std::vector<int>& _match2to1, const int matchSz, std::map<int64_t, std::vector<std::pair<int, int>>>& _win2Data2D);
 
 	private:
 		std::map<uint32_t, std::shared_ptr<ImageExtractData>> imageDatas_;

@@ -87,7 +87,7 @@ namespace ImageProcess_LYJ
         std::vector<int> matchesDist(features1.size(), -1);
 
         // compute F matrix
-        SLAM_LYJ::Pose3D T12 = _Tcw1 * Tcw2.inversed();
+        SLAM_LYJ::Pose3D T12 = _Tcw1 * _Tcw2.inversed();
         const Eigen::Matrix3d& rota = T12.getR();
         const Eigen::Vector3d& trans = T12.gett();
         Eigen::Matrix3d t_mul;
@@ -352,16 +352,17 @@ namespace ImageProcess_LYJ
         }
         else if (opt_.mode == 7)
         {
-            SLAM_LYJ::Pose3D T12 = _frame1->Tcw * _frame2->Tcw.inversed();
+            //SLAM_LYJ::Pose3D T12 = _frame1->Tcw * _frame2->Tcw.inversed();
             // std::vector<std::pair<int, int>> rets;
             //std::string savepath = "";
             //if (_result->debugPath != "")
             //    savepath = _result->debugPath + std::to_string(_frame1->id) + "_" + std::to_string(_frame2->id) + ".png";
-            cnt = matchByF(_frame1->cam->getK(),
+            cnt = matchByF(_frame1->cam->getK(), _frame2->cam->getK(),
                 _frame1->kps_, _frame2->kps_,
                 _frame1->descriptors_, _frame2->descriptors_,
                 _frame1->featureGrid_.get(),
-                T12.getR(), T12.gett(),
+                _frame1->Tcw, _frame2->Tcw,
+                _frame1->kp3Ds_, _frame2->kp3Ds_, 0.1,
                 _result->match2to1P, 50, 0.6);
                 //,
                 //     _frame1->img, _frame2->img,

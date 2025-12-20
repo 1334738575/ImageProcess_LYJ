@@ -1,5 +1,7 @@
 #include "CorrespondGraph.h"
 #include <STLPlus/include/file_system.h>
+#include <IO/DataWin2D.h>
+#include <common/CompressedImage.h>
 
 namespace ImageProcess_LYJ
 {
@@ -613,5 +615,91 @@ namespace ImageProcess_LYJ
 		generate(imageDatas_, matchDatas_);
 
 		return true;
+	}
+	void CorrespondGraph::dump(const std::string& _path)
+	{
+		using namespace COMMON_LYJ;
+
+		Data2DPoint data2DPoint;
+		Data2DLine data2DLine;
+		Data2DEdge data2DEdge;
+
+		std::vector<std::vector<cv::Point>>& allKPs = data2DPoint.m_allKeyPoints;
+		std::vector<std::vector<cv::Vec4f>>& allKLs = data2DLine.m_allKeyLines;
+		std::vector<std::vector<cv::Point>>& allKEs = data2DEdge.m_allEdgePoints;
+		int sz = this->imageDatas_.size();
+		allKPs.resize(sz);
+		allKLs.resize(sz);
+		allKEs.resize(sz);
+		//std::string imgDir = _path + "/images/";
+		//if (!stlplus::folder_exists(imgDir))
+		//	stlplus::folder_create(imgDir);
+		std::vector<COMMON_LYJ::CompressedImage> comImgs(sz);
+		for (int i = 0; i < sz; ++i)
+		{
+			const auto& imgData = imageDatas_[i];
+			const auto& kps = imgData->kps_;
+			int szP = kps.size();
+			auto& kpsWin = allKPs[i];
+			kpsWin.resize(szP);
+			for (int j = 0; j < szP; ++j)
+			{
+				kpsWin[j].x = kps[j].pt.x;
+				kpsWin[j].y = kps[j].pt.y;
+			}
+			const auto& kls = imgData->vecLines_;
+			int szL = kls.size();
+			auto& klsWin = allKLs[i];
+			klsWin = kls;
+			const auto& kes = imgData->edges_;
+			int szE = kes.size();
+			auto& kesWin = allKEs[i];
+			kesWin.resize(szE);
+			for (int j = 0; j < szE; ++j)
+			{
+				kesWin[j].x = kes[j](0);
+				kesWin[j].y = kes[j](1);
+			}
+			//std::string newImagePath = imgDir + std::to_string(i) + ".png";
+			//const std::string& oldImagePath = imgData->path;
+			//stlplus::file_copy(oldImagePath, newImagePath);
+			comImgs[i].compressCVMat(imgData->img);
+		}
+
+		std::map<int64_t, std::vector<Mth>>& allPMs = data2DPoint.m_allPointMatches;
+		std::map<int64_t, std::vector<Mth>>& allLMs = data2DLine.m_allLineMatches;
+		std::map<int64_t, std::vector<Mth>>& allEMs = data2DEdge.m_allEdgeMatches;
+		int szM = this->matchDatas_.size();
+		for (const auto& mDatas : matchDatas_)
+		{
+			uint64_t ind = mDatas.first;
+			const auto& mps = mDatas.second->match2to1P;
+			int szMp = mDatas.second->pointMatchSize;
+			convertMatches2WinData2D(ind, mps, szMp, allPMs);
+			const auto& mls = mDatas.second->match2to1L;
+			int szMl = mDatas.second->lineMatchSize;
+			convertMatches2WinData2D(ind, mls, szMl, allLMs);
+			const auto& mes = mDatas.second->match2to1E;
+			int szMe = mDatas.second->edgeMatchSize;
+			convertMatches2WinData2D(ind, mes, szMe, allEMs);
+		}
+
+		if (!stlplus::folder_exists(_path))
+			stlplus::folder_create(_path);
+		//COMMON_LYJ::recordBin2D(_path, data2DPoint, data2DLine, data2DEdge);
+		COMMON_LYJ::recordBin2DWithComImg(_path, comImgs, data2DPoint, data2DLine, data2DEdge);
+	}
+	void CorrespondGraph::convertMatches2WinData2D(const int64_t _ind, const std::vector<int>& _match2to1, const int matchSz, std::map<int64_t, std::vector<std::pair<int, int>>>& _win2Data2D)
+	{
+		if (_win2Data2D.count(_ind) != 0)
+			return;
+		int sz = _match2to1.size();
+		auto& ms = _win2Data2D[_ind];
+		ms.reserve(matchSz);
+		for (int i = 0; i < sz; ++i)
+		{
+			if (_match2to1[i] != -1)
+				ms.emplace_back(i, _match2to1[i]);
+		}
 	}
 }
