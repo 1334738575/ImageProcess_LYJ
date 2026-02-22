@@ -28,7 +28,7 @@ int LineMatcher::match(ImageExtractData* const _frame1, ImageExtractData* const 
 		}
 	}
 	else if (opt_.mode == FUNDAMENTAL) {
-		Eigen::Matrix3d F = SLAM_LYJ::SLAM_LYJ_MATH::calculateFundamentalMatrix(
+		Eigen::Matrix3d F = COMMON_LYJ::calculateFundamentalMatrix(
 			_frame1->Tcw.getR(), _frame1->Tcw.gett(), _frame1->cam->getK(),
 			_frame2->Tcw.getR(), _frame2->Tcw.gett(), _frame2->cam->getK()
 		);

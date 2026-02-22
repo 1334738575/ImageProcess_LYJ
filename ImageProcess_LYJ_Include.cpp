@@ -117,17 +117,17 @@ namespace ImageProcess_LYJ
         int cnt = 0;
         if (_opt.justTri)
         {
-            SLAM_LYJ::TrianglerPoint3DOption opt;
-            SLAM_LYJ::TrianglerPoint3D triangler;
+            COMMON_LYJ::TrianglerPoint3DOption opt;
+            COMMON_LYJ::TrianglerPoint3D triangler;
             int sz = _frame1->kps_.size();
             _triangleResult->bTris.assign(sz, false);
             _triangleResult->Ps.resize(sz, Eigen::Vector3d::Zero());
-            SLAM_LYJ::PinholeCamera *cam = dynamic_cast<SLAM_LYJ::PinholeCamera *>(_frame1->cam);
+            COMMON_LYJ::PinholeCamera *cam = dynamic_cast<COMMON_LYJ::PinholeCamera *>(_frame1->cam);
             std::vector<Eigen::Vector2d> uvs(2);
-            std::vector<SLAM_LYJ::Pose3D> Tcws(2);
+            std::vector<COMMON_LYJ::Pose3D> Tcws(2);
             Tcws[0] = _frame1->Tcw;
             Tcws[1] = _frame2->Tcw;
-            std::vector<SLAM_LYJ::PinholeCamera> cams(2);
+            std::vector<COMMON_LYJ::PinholeCamera> cams(2);
             cams[0] = *cam;
             cams[1] = *cam;
             for (int i = 0; i < sz; ++i)

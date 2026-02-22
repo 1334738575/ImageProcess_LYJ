@@ -26,7 +26,7 @@ namespace ImageProcess_LYJ
         // Computes in parallel a fundamental matrix and a homography
         // Selects a model and tries to recover the motion and the structure from motion
         bool Reconstruct(const std::vector<cv::KeyPoint> &vKeys1, const std::vector<cv::KeyPoint> &vKeys2, const std::vector<int> &vMatches12,
-                         SLAM_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated);
+                         COMMON_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated);
 
     private:
         void FindHomography(std::vector<bool> &vbMatchesInliers, float &score, Eigen::Matrix3f &H21);
@@ -40,10 +40,10 @@ namespace ImageProcess_LYJ
         float CheckFundamental(const Eigen::Matrix3f &F21, std::vector<bool> &vbMatchesInliers, float sigma);
 
         bool ReconstructF(std::vector<bool> &vbMatchesInliers, Eigen::Matrix3f &F21, Eigen::Matrix3f &K,
-                        SLAM_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated, float minParallax, int minTriangulated);
+                        COMMON_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated, float minParallax, int minTriangulated);
 
         bool ReconstructH(std::vector<bool> &vbMatchesInliers, Eigen::Matrix3f &H21, Eigen::Matrix3f &K,
-                        SLAM_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated, float minParallax, int minTriangulated);
+                        COMMON_LYJ::Pose3D &T21, std::vector<cv::Point3f> &vP3D, std::vector<bool> &vbTriangulated, float minParallax, int minTriangulated);
 
         void Normalize(const std::vector<cv::KeyPoint> &vKeys, std::vector<cv::Point2f> &vNormalizedPoints, Eigen::Matrix3f &T);
 

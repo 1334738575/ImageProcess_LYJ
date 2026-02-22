@@ -41,7 +41,7 @@ namespace ImageProcess_LYJ
     }
 
     bool TwoViewReconstruction::Reconstruct(const std::vector<cv::KeyPoint> &vKeys1, const std::vector<cv::KeyPoint> &vKeys2, const vector<int> &vMatches12,
-                                            SLAM_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated)
+                                            COMMON_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated)
     {
         mvKeys1.clear();
         mvKeys2.clear();
@@ -472,7 +472,7 @@ namespace ImageProcess_LYJ
     }
 
     bool TwoViewReconstruction::ReconstructF(vector<bool> &vbMatchesInliers, Eigen::Matrix3f &F21, Eigen::Matrix3f &K,
-                                             SLAM_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
+                                             COMMON_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
     {
         int N = 0;
         for (size_t i = 0, iend = vbMatchesInliers.size(); i < iend; i++)
@@ -529,7 +529,7 @@ namespace ImageProcess_LYJ
                 vP3D = vP3D1;
                 vbTriangulated = vbTriangulated1;
 
-                T21 = SLAM_LYJ::Pose3D(R1.cast<double>(), t1.cast<double>());
+                T21 = COMMON_LYJ::Pose3D(R1.cast<double>(), t1.cast<double>());
                 return true;
             }
         }
@@ -540,7 +540,7 @@ namespace ImageProcess_LYJ
                 vP3D = vP3D2;
                 vbTriangulated = vbTriangulated2;
 
-                T21 = SLAM_LYJ::Pose3D(R2.cast<double>(), t1.cast<double>());
+                T21 = COMMON_LYJ::Pose3D(R2.cast<double>(), t1.cast<double>());
                 return true;
             }
         }
@@ -551,7 +551,7 @@ namespace ImageProcess_LYJ
                 vP3D = vP3D3;
                 vbTriangulated = vbTriangulated3;
 
-                T21 = SLAM_LYJ::Pose3D(R1.cast<double>(), t2.cast<double>());
+                T21 = COMMON_LYJ::Pose3D(R1.cast<double>(), t2.cast<double>());
                 return true;
             }
         }
@@ -562,7 +562,7 @@ namespace ImageProcess_LYJ
                 vP3D = vP3D4;
                 vbTriangulated = vbTriangulated4;
 
-                T21 = SLAM_LYJ::Pose3D(R2.cast<double>(), t2.cast<double>());
+                T21 = COMMON_LYJ::Pose3D(R2.cast<double>(), t2.cast<double>());
                 return true;
             }
         }
@@ -571,7 +571,7 @@ namespace ImageProcess_LYJ
     }
 
     bool TwoViewReconstruction::ReconstructH(vector<bool> &vbMatchesInliers, Eigen::Matrix3f &H21, Eigen::Matrix3f &K,
-                                             SLAM_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
+                                             COMMON_LYJ::Pose3D &T21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
     {
         int N = 0;
         for (size_t i = 0, iend = vbMatchesInliers.size(); i < iend; i++)
@@ -724,7 +724,7 @@ namespace ImageProcess_LYJ
 
         if (secondBestGood < 0.75 * bestGood && bestParallax >= minParallax && bestGood > minTriangulated && bestGood > 0.9 * N)
         {
-            T21 = SLAM_LYJ::Pose3D(vR[bestSolutionIdx].cast<double>(), vt[bestSolutionIdx].cast<double>());
+            T21 = COMMON_LYJ::Pose3D(vR[bestSolutionIdx].cast<double>(), vt[bestSolutionIdx].cast<double>());
             vbTriangulated = bestTriangulated;
 
             return true;

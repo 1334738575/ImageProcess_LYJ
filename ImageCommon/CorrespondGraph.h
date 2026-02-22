@@ -21,7 +21,7 @@ namespace ImageProcess_LYJ
 		std::vector<std::vector<CorrespondPoint>> corrPoints_;
 		std::vector<bool> bAdd2MapPoints;
 		uint32_t corrNum_ = 0;
-		SLAM_LYJ::SLAM_LYJ_MATH::CompressVV2V<CorrespondPoint> compressCorrPoints_;
+		COMMON_LYJ::CompressVV2V<CorrespondPoint> compressCorrPoints_;
 		bool bCompressed_ = false;
 		inline bool isCompressed() const{ return bCompressed_; }
 		void compress();
@@ -36,7 +36,7 @@ namespace ImageProcess_LYJ
 
 		bool generate(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas);
 		bool compress();
-		bool getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, SLAM_LYJ::PinholeCamera& _cam);
+		bool getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, COMMON_LYJ::PinholeCamera& _cam);
 
 		bool existImage(const uint32_t& _id) const;
 		bool existMatch(const uint32_t& _id1, const uint32_t& _id2) const;
@@ -64,7 +64,7 @@ namespace ImageProcess_LYJ
 		std::map<uint32_t, std::shared_ptr<ImageExtractData>> imageDatas_;
 		std::unordered_map<uint64_t, std::shared_ptr<ImageMatchData>> matchDatas_;
 		std::map<uint32_t, std::shared_ptr<CorrespondImage>> correspondDatas_;
-		SLAM_LYJ::PinholeCamera cam_;
+		COMMON_LYJ::PinholeCamera cam_;
 	};
 }
 

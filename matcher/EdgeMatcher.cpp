@@ -21,7 +21,7 @@ namespace ImageProcess_LYJ{
 		std::vector<std::pair<Eigen::Vector2f, int>> nearPs;
 		std::vector<float> dists;
 		int nearSize = -1;
-		//auto funcDist = [&features1](const SLAM_LYJ_MATH::KdTree<float, 2>::Node* _node, const Eigen::Vector2f& _p)->float {
+		//auto funcDist = [&features1](const COMMON_LYJ::KdTree<float, 2>::Node* _node, const Eigen::Vector2f& _p)->float {
 		//};
 		for (int i = 0; i < fSize2; ++i) {
 			nearSize = _frame1->kdtree_->search2(_frame2->edges_[i], opt_.nearN, opt_.distTh, nearPs, dists);

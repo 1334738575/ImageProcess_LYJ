@@ -45,10 +45,10 @@ public:
 private:
 
 	void initPoints(const cv::Mat& _m, std::vector<cv::KeyPoint>& _kps);
-	std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> generateGrid(const int _w, const int _h,
+	std::shared_ptr<COMMON_LYJ::Grid2Df> generateGrid(const int _w, const int _h,
 		const std::vector<cv::KeyPoint>& _kps);
-	void initMatchResults(const std::vector<cv::KeyPoint>& _kps1, std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches);
-	void initOffsets(const cv::Mat& _m1, const cv::Mat& _m2, std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches, const int _candSize);
+	void initMatchResults(const std::vector<cv::KeyPoint>& _kps1, std::shared_ptr<COMMON_LYJ::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches);
+	void initOffsets(const cv::Mat& _m1, const cv::Mat& _m2, std::shared_ptr<COMMON_LYJ::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches, const int _candSize);
 	bool findMatchPoint(const cv::Mat& _m1, const cv::Mat& _m2,
 		const Eigen::Vector2f& _p1, Eigen::Vector2f& _offset, float& _bestD,
 		const int _r, const float _th);

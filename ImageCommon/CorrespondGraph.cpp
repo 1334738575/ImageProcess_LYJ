@@ -99,7 +99,7 @@ namespace ImageProcess_LYJ
 				correspondDatas_[mtd->id2]->corrPoints_[mtd->match2to1P[i]].emplace_back(mtd->id1, i);
 			}
 		}
-		SLAM_LYJ::PinholeCamera* camera = dynamic_cast<SLAM_LYJ::PinholeCamera*>(imageDatas_.begin()->second->cam);
+		COMMON_LYJ::PinholeCamera* camera = dynamic_cast<COMMON_LYJ::PinholeCamera*>(imageDatas_.begin()->second->cam);
 		cam_ = *camera;
 		return true;
 	}
@@ -111,7 +111,7 @@ namespace ImageProcess_LYJ
 			cit.second->compress();
 		return true;
 	}
-	bool CorrespondGraph::getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, SLAM_LYJ::PinholeCamera& _cam)
+	bool CorrespondGraph::getData(std::map<uint32_t, std::shared_ptr<ImageExtractData>>& _imageDatas, std::unordered_map<uint64_t, std::shared_ptr<ImageProcess_LYJ::ImageMatchData>>& _matchDatas, COMMON_LYJ::PinholeCamera& _cam)
 	{
 		_imageDatas = imageDatas_;
 		_matchDatas = matchDatas_;
@@ -276,7 +276,7 @@ namespace ImageProcess_LYJ
 		{
 			if (imageDatas_.begin()->second->cam)
 			{
-				SLAM_LYJ::PinholeCamera* camera = dynamic_cast<SLAM_LYJ::PinholeCamera*>(imageDatas_.begin()->second->cam);
+				COMMON_LYJ::PinholeCamera* camera = dynamic_cast<COMMON_LYJ::PinholeCamera*>(imageDatas_.begin()->second->cam);
 				COMMON_LYJ::writePinCamera(camPath, *camera);
 			}
 		}

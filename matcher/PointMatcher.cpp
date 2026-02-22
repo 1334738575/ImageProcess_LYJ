@@ -76,7 +76,7 @@ namespace ImageProcess_LYJ
         const std::vector<cv::KeyPoint> &features1, const std::vector<cv::KeyPoint> &features2,
         const cv::Mat &desc1, const cv::Mat &desc2,
         FeatureGrid *grid1,
-        SLAM_LYJ::Pose3D& _Tcw1, SLAM_LYJ::Pose3D& _Tcw2,
+        COMMON_LYJ::Pose3D& _Tcw1, COMMON_LYJ::Pose3D& _Tcw2,
         std::vector<Eigen::Vector3f>& _P3Ds1, std::vector<Eigen::Vector3f>& _P3Ds2, const float& _squareDistTh,
         std::vector<int> &_matches2to1,
         double th = 50, double nnTh = 0.6)
@@ -87,7 +87,7 @@ namespace ImageProcess_LYJ
         std::vector<int> matchesDist(features1.size(), -1);
 
         // compute F matrix
-        SLAM_LYJ::Pose3D T12 = _Tcw1 * _Tcw2.inversed();
+        COMMON_LYJ::Pose3D T12 = _Tcw1 * _Tcw2.inversed();
         const Eigen::Matrix3d& rota = T12.getR();
         const Eigen::Vector3d& trans = T12.gett();
         Eigen::Matrix3d t_mul;
@@ -96,8 +96,8 @@ namespace ImageProcess_LYJ
             -1 * trans(1), trans(0), 0;
         Eigen::Matrix3d F = K1.inverse().transpose() * t_mul * rota * K2.inverse();
 
-        SLAM_LYJ::Pose3D Twc1 = _Tcw1.inversed();
-        SLAM_LYJ::Pose3D Twc2 = _Tcw2.inversed();
+        COMMON_LYJ::Pose3D Twc1 = _Tcw1.inversed();
+        COMMON_LYJ::Pose3D Twc2 = _Tcw2.inversed();
         Eigen::Vector3f Pw1;
         Eigen::Vector3f Pw2;
 
@@ -179,7 +179,7 @@ namespace ImageProcess_LYJ
         const cv::Mat& _desc1, const cv::Mat& _desc2,
         const DBoW3::FeatureVector& _fv1, const DBoW3::FeatureVector& _fv2,
         std::vector<int>& _matches2to1,
-        SLAM_LYJ::Pose3D& _Tcw1, SLAM_LYJ::Pose3D& _Tcw2,
+        COMMON_LYJ::Pose3D& _Tcw1, COMMON_LYJ::Pose3D& _Tcw2,
         std::vector<Eigen::Vector3f>& _P3Ds1, std::vector<Eigen::Vector3f>& _P3Ds2, const float& _squareDistTh
     )
     {
@@ -199,8 +199,8 @@ namespace ImageProcess_LYJ
         DBoW3::FeatureVector::const_iterator KFend = _fv2.end();
         DBoW3::FeatureVector::const_iterator Fend = _fv1.end();
 
-        SLAM_LYJ::Pose3D Twc1 = _Tcw1.inversed();
-        SLAM_LYJ::Pose3D Twc2 = _Tcw2.inversed();
+        COMMON_LYJ::Pose3D Twc1 = _Tcw1.inversed();
+        COMMON_LYJ::Pose3D Twc2 = _Tcw2.inversed();
         Eigen::Vector3f Pw1;
         Eigen::Vector3f Pw2;
 
@@ -352,7 +352,7 @@ namespace ImageProcess_LYJ
         }
         else if (opt_.mode == 7)
         {
-            //SLAM_LYJ::Pose3D T12 = _frame1->Tcw * _frame2->Tcw.inversed();
+            //COMMON_LYJ::Pose3D T12 = _frame1->Tcw * _frame2->Tcw.inversed();
             // std::vector<std::pair<int, int>> rets;
             //std::string savepath = "";
             //if (_result->debugPath != "")

@@ -39,7 +39,7 @@ int PatchMatcher::matchPatch(const cv::Mat& _m1, std::vector<cv::KeyPoint>& _kps
 
 	if (_kps1.empty())
 		initPoints(m1, _kps1);
-	std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> grid = generateGrid(m1.cols, m1.rows, _kps1);
+	std::shared_ptr<COMMON_LYJ::Grid2Df> grid = generateGrid(m1.cols, m1.rows, _kps1);
 	initMatchResults(_kps1, grid, _matches);
 	initOffsets(m1, m2, grid, _matches, m_opt.candOffsetSize);
 
@@ -192,7 +192,7 @@ void PatchMatcher::initPoints(const cv::Mat& _m, std::vector<cv::KeyPoint>& _kps
 	cv::drawKeypoints(m2, kps2, m2);
 	cv::imshow("fast2", m2);
 	cv::waitKey();
-	SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df grid(20, _m.rows, _m.cols, kps2);
+	COMMON_LYJ::Grid2Df grid(20, _m.rows, _m.cols, kps2);
 	int gCols = grid.getGridSize(0);
 	int gRows = grid.getGridSize(1);
 	for (int i = 0; i < gRows; ++i) {
@@ -215,14 +215,14 @@ void PatchMatcher::initPoints(const cv::Mat& _m, std::vector<cv::KeyPoint>& _kps
 	cv::imshow("fast3", m3);
 	cv::waitKey();
 }
-std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> PatchMatcher::generateGrid(const int _w, const int _h,
+std::shared_ptr<COMMON_LYJ::Grid2Df> PatchMatcher::generateGrid(const int _w, const int _h,
 	const std::vector<cv::KeyPoint>& _kps)
 {
-	std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> grid;
-	grid.reset(new SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df(m_opt.resolution, _h, _w, _kps));
+	std::shared_ptr<COMMON_LYJ::Grid2Df> grid;
+	grid.reset(new COMMON_LYJ::Grid2Df(m_opt.resolution, _h, _w, _kps));
 	return grid;
 }
-void PatchMatcher::initMatchResults(const std::vector<cv::KeyPoint>& _kps1, std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches)
+void PatchMatcher::initMatchResults(const std::vector<cv::KeyPoint>& _kps1, std::shared_ptr<COMMON_LYJ::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches)
 {
 	_matches.clear();
 	int gw = _grid->getGridSize(0);
@@ -251,7 +251,7 @@ void PatchMatcher::initMatchResults(const std::vector<cv::KeyPoint>& _kps1, std:
 	}
 }
 void PatchMatcher::initOffsets(const cv::Mat& _m1, const cv::Mat& _m2, 
-	std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches, const int _candSize)
+	std::shared_ptr<COMMON_LYJ::Grid2Df> _grid, std::vector<PatchMatchResult>& _matches, const int _candSize)
 {
 	int gw = _grid->getGridSize(0);
 	int gh = _grid->getGridSize(1);
@@ -283,7 +283,7 @@ void PatchMatcher::initOffsets(const cv::Mat& _m1, const cv::Mat& _m2,
 		});
 	searchR = 10;
 	th = 10;
-	SLAM_LYJ::SLAM_LYJ_MATH::Diffuser2D diffuser(gw, gh);
+	COMMON_LYJ::Diffuser2D diffuser(gw, gh);
 	int bestCandi = -1;
 	int maxCnt = 0;
 	for (int candi = 0; candi < _candSize; ++candi) {

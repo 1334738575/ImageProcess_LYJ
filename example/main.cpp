@@ -7,13 +7,13 @@ int main()
     ImageProcess_LYJ::print_ImageProcess_LYJ_Test();
 
     std::vector<double> camd = {765.955, 766.549, 1024, 1024};
-    SLAM_LYJ::PinholeCamera cam(2048, 2048, camd);
+    COMMON_LYJ::PinholeCamera cam(2048, 2048, camd);
 
     std::string dataPath = "D:/tmp/images/";
     std::string dataPath2 = "D:/tmp/texture_data/RT_";
     int id1 = 7;
     int id2 = 13;
-    auto funcReadTcw = [](const std::string &_file, SLAM_LYJ::Pose3D &Tcw)
+    auto funcReadTcw = [](const std::string &_file, COMMON_LYJ::Pose3D &Tcw)
     {
         std::ifstream f(_file);
         if (!f.is_open())

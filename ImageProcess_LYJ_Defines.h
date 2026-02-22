@@ -35,7 +35,7 @@ namespace ImageProcess_LYJ
 	};
 	struct ImageTriangleData
 	{
-		SLAM_LYJ::Pose3D T21;
+		COMMON_LYJ::Pose3D T21;
 		std::vector<bool> bTris;
 		std::vector<Eigen::Vector3d> Ps; //if justTri==true, Ps is in world, else in camera 1
 		bool justTri = false;
@@ -62,7 +62,7 @@ namespace ImageProcess_LYJ
 		int id1 = -1;
 		int id2 = -1;
 
-		SLAM_LYJ::Pose3D T21;
+		COMMON_LYJ::Pose3D T21;
 
 		//keypoint
 		bool usePointMatch = true;
@@ -107,9 +107,9 @@ namespace ImageProcess_LYJ
 		cv::Mat mask; //掩膜
 		cv::Mat depths; //深度图
 		std::vector<uint32_t> fIds; //面片ID，大小与深度图相同
-		SLAM_LYJ::CameraModule* cam = nullptr; //相机
-		SLAM_LYJ::Pose3D Tcw; //相机位姿
-		SLAM_LYJ::BaseTriMesh* btmPtr = nullptr;
+		COMMON_LYJ::CameraModule* cam = nullptr; //相机
+		COMMON_LYJ::Pose3D Tcw; //相机位姿
+		COMMON_LYJ::BaseTriMesh* btmPtr = nullptr;
 
 		//keypoint
 		bool usePointFeature = true;
@@ -120,15 +120,15 @@ namespace ImageProcess_LYJ
 		DBoW3::FeatureVector featureVec;
 		DBoW3::BowVector bowVec;
 		//KeyPointIndexMode kpIndMode_ = GRID;
-		//std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::KdTree2d> kdtree_ = nullptr;
-		std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::Grid2Df> grid_ = nullptr;
+		//std::shared_ptr<COMMON_LYJ::KdTree2d> kdtree_ = nullptr;
+		std::shared_ptr<COMMON_LYJ::Grid2Df> grid_ = nullptr;
 		std::shared_ptr<FeatureGrid> featureGrid_ = nullptr;
 		std::shared_ptr<FeatureGridFromORB> featureGridFromORB_ = nullptr;
 		//line
 		bool useLineFeature = false;
 		std::vector<cv::Vec4f> vecLines_;
-		std::vector<SLAM_LYJ::Line2f> lines2f;//与vecLines对应
-		std::vector<SLAM_LYJ::Line3f> line3Ds_;
+		std::vector<COMMON_LYJ::Line2f> lines2f;//与vecLines对应
+		std::vector<COMMON_LYJ::Line3f> line3Ds_;
 		std::vector<cv::line_descriptor::KeyLine> vecKeyLines_;
 		cv::Mat lineDescriptors_;
 		//edge
@@ -137,7 +137,7 @@ namespace ImageProcess_LYJ
 		std::vector<Eigen::Vector3f> edge3Ds_;
 		std::vector<Eigen::Vector3f> edge3DNors_;
 		std::vector<Eigen::Vector2f> edgesDir_;
-		std::shared_ptr<SLAM_LYJ::SLAM_LYJ_MATH::KdTree<float, 2>> kdtree_ = nullptr;
+		std::shared_ptr<COMMON_LYJ::KdTree<float, 2>> kdtree_ = nullptr;
 		bool isParallel_ = false;
 		Eigen::Vector3f nParallel_ = Eigen::Vector3f::Zero();
 		Eigen::Vector3f nParallelVar_ = Eigen::Vector3f::Zero();
