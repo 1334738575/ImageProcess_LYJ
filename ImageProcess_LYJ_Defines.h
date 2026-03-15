@@ -90,6 +90,23 @@ namespace ImageProcess_LYJ
 		std::string debugPath = "";
 	};
 
+	struct ImagePairOption
+	{
+		//bf
+		bool useBF = true;
+
+		//loc
+		bool useLoc = false;
+		int nnLoc = 10;
+		float distThLoc = 1;
+
+		//voc
+		bool useVoc = false;
+		int nnVoc = 10;
+		double scoreThVoc = 0.5;
+		std::string vocPathVoc = "";
+	};
+
 	struct ImageExtractOption
 	{
 		bool usePointFeature = true;

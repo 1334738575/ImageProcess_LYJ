@@ -4,6 +4,68 @@
 
 namespace ImageProcess_LYJ
 {
+    HomographyDecomposer::HomographyDecomposer()
+    {}
+    HomographyDecomposer::~HomographyDecomposer()
+    {}
+
+    bool HomographyDecomposer::decomposeHomographyMatrix(const cv::Mat & H, 
+        const cv::Mat & K1, const cv::Mat & K2, 
+        const std::vector<cv::Point2f>&pts1, const std::vector<cv::Point2f>&pts2, 
+        Eigen::Matrix3d & R_out, Eigen::Vector3d & t_out)
+    {
+        if (H.rows != 3 || H.cols != 3 || pts1.empty() || pts1.size() != pts2.size()) {
+            std::cerr << "输入参数错误！" << std::endl;
+            return false;
+        }
+
+        // 1. 归一化H：H = K2 * H_norm * K1^{-1} → H_norm = K2^{-1} * H * K1
+        cv::Mat K1_inv = K1.inv(), K2_inv = K2.inv();
+        cv::Mat H_norm = K2_inv * H * K1;
+
+        // 2. OpenCV分解单应矩阵（得到4组解）
+        std::vector<cv::Mat> Rs, ts, ns; // ns: 平面法向量
+        cv::decomposeHomographyMat(H_norm, K1, Rs, ts, ns);
+
+        // 3. 验证解（平面场景/纯旋转）
+        cv::Mat P1 = K1 * cv::Mat::eye(3, 4, CV_64F); // 相机1投影矩阵
+        for (int i = 0; i < Rs.size(); ++i) {
+            // 构建相机2投影矩阵 P2 = K2 [R | t]
+            cv::Mat P2(3, 4, CV_64F);
+            Rs[i].copyTo(P2.colRange(0, 3));
+            ts[i].copyTo(P2.col(3));
+            P2 = K2 * P2;
+
+            // 三角化验证深度
+            std::vector<cv::Point3d> points3D;
+            cv::triangulatePoints(P1, P2, pts1, pts2, points3D);
+
+            int positive_depth = 0;
+            for (const auto& p3d : points3D) {
+                double w = p3d.z;
+                if (w == 0) continue;
+                double z = p3d.z / w;
+                if (z > 1e-6) positive_depth++;
+            }
+
+            if (positive_depth > 0.8 * pts1.size()) {
+                // 转换为Eigen格式
+                for (int r = 0; r < 3; ++r) {
+                    for (int c = 0; c < 3; ++c) {
+                        R_out(r, c) = Rs[i].at<double>(r, c);
+                    }
+                    t_out(r) = ts[i].at<double>(r);
+                }
+                return true;
+            }
+        }
+
+        std::cerr << "未找到有效RT解！" << std::endl;
+        return false;
+    }
+
+
+
 	int RANSACHomography::calErr(const Eigen::Matrix3f& _mdl, const std::vector<int>& _datas, std::vector<float>& _errs, std::vector<bool>& _bInls)
 	{
         if (m_kps1 == nullptr || m_kps2 == nullptr)

@@ -4,6 +4,10 @@
 #include "extractor/Cannyextractor.h"
 #include "extractor/LSDextractor.h"
 
+#include "pairGenerator/bfPairGenerator.h"
+#include "pairGenerator/locPairGenerator.h"
+#include "pairGenerator/vocPairGenerator.h"
+
 #include "matcher/PointMatcher.h"
 
 #include "ImageCommon/TwoViewReconstruction.h"
@@ -80,6 +84,30 @@ namespace ImageProcess_LYJ
             CannyExtractor::Option opt;
             CannyExtractor extractor(opt);
             extractor.extract(_frame->img, _frame);
+        }
+        return;
+    }
+
+    IMAGEPROCESS_LYJ_API void pairGenerate(std::vector<ImageExtractData>& _frames, std::vector<ImageMatchData>& _matchDatas, const ImagePairOption& _opt)
+    {
+        if (_opt.useBF)
+        {
+            BFPairGenerator::Option opt;
+            BFPairGenerator bfor(opt);
+            bfor.generatePairs(_frames, _matchDatas);
+        }
+        else if (_opt.useLoc)
+        {
+            LocPairGenerator::Option opt;
+            LocPairGenerator locor(opt);
+            locor.generatePairs(_frames, _matchDatas);
+        }
+        else if (_opt.useVoc)
+        {
+            ORBVocPairGenerator::Option opt;
+            opt.vocPath = _opt.vocPathVoc;
+            ORBVocPairGenerator vocor(opt);
+            vocor.generatePairs(_frames, _matchDatas);
         }
         return;
     }

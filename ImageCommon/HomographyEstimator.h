@@ -8,7 +8,28 @@
 
 namespace ImageProcess_LYJ
 {
+	class HomographyDecomposer
+	{
+	public:
+		HomographyDecomposer();
+		~HomographyDecomposer();
 
+		/**
+		 * @brief 从单应性矩阵H分解RT
+		 * @param H 单应性矩阵（3x3，已归一化）
+		 * @param K1/K2 相机内参
+		 * @param pts1/pts2 像素匹配点
+		 * @param R_out/t_out 输出RT
+		 * @return 是否成功
+		 */
+		static bool decomposeHomographyMatrix(
+			const cv::Mat& H,
+			const cv::Mat& K1, const cv::Mat& K2,
+			const std::vector<cv::Point2f>& pts1, const std::vector<cv::Point2f>& pts2,
+			Eigen::Matrix3d& R_out, Eigen::Vector3d& t_out);
+	private:
+
+	};
 
 
 class RANSACHomography : public COMMON_LYJ::RANSACWithInd<float, Eigen::Matrix3f>

@@ -2,6 +2,95 @@
 
 namespace ImageProcess_LYJ
 {
+    FundamentalDecomposer::FundamentalDecomposer()
+    {}
+    FundamentalDecomposer::~FundamentalDecomposer()
+    {}
+
+    bool FundamentalDecomposer::decomposeEssentialMatrix(const cv::Mat& E, 
+        const cv::Mat& K1, const cv::Mat& K2, 
+        const std::vector<cv::Point2f>& pts1, const std::vector<cv::Point2f>& pts2, 
+        Eigen::Matrix3d& R_out, Eigen::Vector3d& t_out)
+    {
+        if (E.rows != 3 || E.cols != 3 || pts1.empty() || pts1.size() != pts2.size()) {
+            std::cerr << "输入参数错误！" << std::endl;
+            return false;
+        }
+
+        // 1. OpenCV分解本质矩阵（得到4组可能的解）
+        cv::Mat R1, R2;
+        cv::Mat t;
+        cv::decomposeEssentialMat(E, R1, R2, t); // 输出：Rs[0-3], ts[0-3]
+        std::vector<cv::Mat> Rs(4);
+        Rs[0] = R1;
+        Rs[1] = R1;
+        Rs[2] = R2;
+        Rs[3] = R2;
+        std::vector<cv::Mat> ts(4);
+        ts[0] = t;
+        ts[1] = -1 * t;
+        ts[2] = t;
+        ts[3] = -1 * t;
+
+        // 2. 三角化验证：仅保留深度为正的解
+        cv::Mat P1 = cv::Mat::eye(3, 4, CV_64F);  // 相机1位姿：P1 = [I | 0]
+        P1 = K1 * P1;                              // 投影矩阵：P = K[R | t]
+
+        for (int i = 0; i < 4; ++i) {
+            // 构建相机2的投影矩阵 P2 = K2 [R | t]
+            cv::Mat P2(3, 4, CV_64F);
+            Rs[i].copyTo(P2.colRange(0, 3));
+            ts[i].copyTo(P2.col(3));
+            P2 = K2 * P2;
+
+            // 三角化三维点
+            std::vector<cv::Point3d> points3D;
+            cv::triangulatePoints(P1, P2, pts1, pts2, points3D);
+
+            // 检查深度是否为正（重投影到相机2，z>0）
+            int positive_depth_count = 0;
+            for (const auto& p3d : points3D) {
+                // 齐次坐标转非齐次：(x/w, y/w, z/w)
+                double w = p3d.z; // triangulatePoints输出的是(x,y,z,w)，需归一化
+                if (w == 0) continue;
+                double z = p3d.z / w;
+                if (z > 1e-6) positive_depth_count++; // 深度阈值（避免浮点误差）
+            }
+
+            // 超过80%的点深度为正 → 正确解
+            if (positive_depth_count > 0.8 * pts1.size()) {
+                // 转换为Eigen格式
+                for (int r = 0; r < 3; ++r) {
+                    for (int c = 0; c < 3; ++c) {
+                        R_out(r, c) = Rs[i].at<double>(r, c);
+                    }
+                    t_out(r) = ts[i].at<double>(r);
+                }
+                return true;
+            }
+        }
+
+        std::cerr << "未找到有效RT解！" << std::endl;
+        return false;
+    }
+
+    bool FundamentalDecomposer::decomposeFundamentalMatrix(const cv::Mat & F, const cv::Mat & K1, const cv::Mat & K2, const std::vector<cv::Point2f>&pts1, const std::vector<cv::Point2f>&pts2, Eigen::Matrix3d & R_out, Eigen::Vector3d & t_out)
+    {
+        // 1. F → E：E = K2^T * F * K1
+        cv::Mat E = K2.t() * F * K1;
+
+        // 2. 归一化特征点（像素坐标→归一化坐标）
+        std::vector<cv::Point2f> pts1_norm, pts2_norm;
+        cv::undistortPoints(pts1, pts1_norm, K1, cv::Mat());
+        cv::undistortPoints(pts2, pts2_norm, K2, cv::Mat());
+
+        // 3. 分解本质矩阵
+        return decomposeEssentialMatrix(E, K1, K2, pts1_norm, pts2_norm, R_out, t_out);
+    }
+
+
+
+
 	int RANSACFundamental::calErr(const Eigen::Matrix3f& _mdl, const std::vector<int>& _datas, std::vector<float>& _errs, std::vector<bool>& _bInls)
 	{
         if (m_kps1 == nullptr || m_kps2 == nullptr)

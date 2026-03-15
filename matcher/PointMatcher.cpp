@@ -326,10 +326,8 @@ namespace ImageProcess_LYJ
         {
         }
     }
-
     PointMatcher::~PointMatcher()
-    {
-    }
+    {}
 
     int PointMatcher::match(ImageExtractData *const _frame1, ImageExtractData *const _frame2, ImageMatchData *const _result)
     {
@@ -373,8 +371,8 @@ namespace ImageProcess_LYJ
             printf("match mode not support!\n");
         }
 
-        // fundamental
-        if (cnt > 0 && opt_.check)
+        // filter
+        if (cnt > 50 && opt_.check)
         {
             std::vector<cv::KeyPoint>& kps1 = _frame1->kps_;
             std::vector<cv::KeyPoint>& kps2 = _frame2->kps_;
@@ -413,49 +411,130 @@ namespace ImageProcess_LYJ
             }
             if (true)
             {
-                std::vector<cv::Point2f> ps1, ps2;
-                std::vector<int> id1s, id2s;
-                for (size_t i = 0; i < kpSize1; ++i) {
-                    if (_result->match2to1P[i] == -1)
-                        continue;
-                    ps1.push_back(_frame1->kps_[i].pt);
-                    ps2.push_back(_frame2->kps_[_result->match2to1P[i]].pt);
-                    id1s.push_back(i);
-                    id2s.push_back(_result->match2to1P[i]);
+                VerifyResult vRet;
+                cnt = verify(_frame1, _frame2, _result, vRet, 3.0);
+                if (cnt > 50)
+                {
+                    VerifyResult vRet;
+                    cnt = verify(_frame1, _frame2, _result, vRet, 1.0);
+                    if (cnt > 50)
+                    {
+                        decomposeT21(_frame1, _frame2, _result, vRet);
+                    }
                 }
-                int cntF = 0;
-                cv::Mat binliners;
-                //cv::Mat F = cv::findFundamentalMat(ps1, ps2, binliners, 8, 1.0);
-                //for (int i = 0; i < binliners.rows; ++i) {
-                //    if (binliners.at<uchar>(i, 0) == 0)
-                //        continue;
-                //    ++cntF;
-                //}
-
-                int cntH = 0;
-                cv::Mat H, mask;
-                H = findHomography(ps1, ps2, cv::RANSAC, 3.0, mask);                
-                for (int i = 0; i < mask.rows; ++i) {
-                    if (mask.at<uchar>(i, 0) == 0)
-                        continue;
-                    ++cntH;
-                }
-
-                if (cntH > cntF)
-                    binliners = mask;
-                _result->match2to1P.assign(kpSize1, -1);
-                for (int i = 0; i < binliners.rows; ++i) {
-                    if (binliners.at<uchar>(i, 0) == 0)
-                        continue;
-                    _result->match2to1P[id1s[i]] = id2s[i];
-                    ++cnt;
-                }
-
-
             }
+        }
+        
+        if (cnt < 50)
+        {
+            cnt = 0;
+            _result->match2to1P.assign(kpSize1, -1);
+            //_result->weightsP.clear();
         }
         _result->pointMatchSize = cnt;
         return cnt;
+    }
+
+    int PointMatcher::verify(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _result,
+        VerifyResult& ret,
+        double _th)
+    {
+        int cnt = 0;
+        std::vector<cv::KeyPoint>& kps1 = _frame1->kps_;
+        std::vector<cv::KeyPoint>& kps2 = _frame2->kps_;
+        int kpSize1 = _frame1->kps_.size();
+        int kpSize2 = _frame2->kps_.size();
+
+        std::vector<cv::Point2f> ps1, ps2;
+        std::vector<int> id1s, id2s;
+        for (size_t i = 0; i < kpSize1; ++i) {
+            if (_result->match2to1P[i] == -1)
+                continue;
+            ps1.push_back(_frame1->kps_[i].pt);
+            ps2.push_back(_frame2->kps_[_result->match2to1P[i]].pt);
+            id1s.push_back(i);
+            id2s.push_back(_result->match2to1P[i]);
+        }
+        int cntF = 0;
+        cv::Mat mask;
+        cv::Mat F = cv::findFundamentalMat(ps1, ps2, mask, 8, _th);
+        for (int i = 0; i < mask.rows; ++i) {
+            if (mask.at<uchar>(i, 0) == 0)
+                continue;
+            ++cntF;
+        }
+
+        int cntH = 0;
+        cv::Mat H, binliners;
+        H = findHomography(ps1, ps2, cv::RANSAC, _th, binliners);
+        for (int i = 0; i < binliners.rows; ++i) {
+            if (binliners.at<uchar>(i, 0) == 0)
+                continue;
+            ++cntH;
+        }
+
+        ret.isF = false;
+        ret.mat = H;
+        if (cntH < cntF * 0.8)
+        {
+            ret.isF = true;
+            ret.mat = F;
+            binliners = mask;
+        }
+        _result->match2to1P.assign(kpSize1, -1);
+        for (int i = 0; i < binliners.rows; ++i) {
+            if (binliners.at<uchar>(i, 0) == 0)
+                continue;
+            _result->match2to1P[id1s[i]] = id2s[i];
+            ++cnt;
+        }
+
+        return cnt;
+    }
+
+    bool PointMatcher::decomposeT21(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* _result, const VerifyResult& _ret)
+    {
+        int cnt = 0;
+        std::vector<cv::KeyPoint>& kps1 = _frame1->kps_;
+        std::vector<cv::KeyPoint>& kps2 = _frame2->kps_;
+        int kpSize1 = _frame1->kps_.size();
+        int kpSize2 = _frame2->kps_.size();
+
+        std::vector<cv::Point2f> ps1, ps2;
+        std::vector<int> id1s, id2s;
+        for (size_t i = 0; i < kpSize1; ++i) {
+            if (_result->match2to1P[i] == -1)
+                continue;
+            ps1.push_back(_frame1->kps_[i].pt);
+            ps2.push_back(_frame2->kps_[_result->match2to1P[i]].pt);
+            id1s.push_back(i);
+            id2s.push_back(_result->match2to1P[i]);
+        }
+        Eigen::Matrix3d KK1 = _frame1->cam->getK();
+        cv::Mat K1 = cv::Mat::zeros(3, 3, CV_64F);
+        K1.at<double>(0, 0) = KK1(0,0);
+        K1.at<double>(1, 1) = KK1(1, 1);
+        K1.at<double>(0, 2) = KK1(0, 2);
+        K1.at<double>(1, 2) = KK1(1, 2);
+        K1.at<double>(2, 2) = 1;
+        Eigen::Matrix3d KK2 = _frame2->cam->getK();
+        cv::Mat K2 = cv::Mat::zeros(3, 3, CV_64F);
+        K2.at<double>(0, 0) = KK2(0, 0);
+        K2.at<double>(1, 1) = KK2(1, 1);
+        K2.at<double>(0, 2) = KK2(0, 2);
+        K2.at<double>(1, 2) = KK2(1, 2);
+        K2.at<double>(2, 2) = 1;
+        Eigen::Matrix3d& R21 = _result->T21.getR();
+        Eigen::Vector3d& t21 = _result->T21.gett();
+        if (_ret.isF)
+        {
+            return FundamentalDecomposer::decomposeFundamentalMatrix(_ret.mat, K1, K2, ps1, ps2, R21, t21);
+        }
+        else
+        {
+            return HomographyDecomposer::decomposeHomographyMatrix(_ret.mat, K1, K2, ps1, ps2, R21, t21);
+        }
+        return false;
     }
 
 }

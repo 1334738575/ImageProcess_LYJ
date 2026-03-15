@@ -30,6 +30,18 @@ public:
 
 	// Í¨¹ý MatcherAbr ¼Ì³Ð
 	int match(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _result) override;
+
+private:
+	struct VerifyResult
+	{
+		bool isF = false;
+		cv::Mat mat;
+	};
+	int verify(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* const _result,
+		VerifyResult& ret,
+		double _th=3.0);
+	bool decomposeT21(ImageExtractData* const _frame1, ImageExtractData* const _frame2, ImageMatchData* _result, 
+		const VerifyResult& _ret);
 private:
 	Option opt_;
 	cv::Ptr<cv::DescriptorMatcher> descMatcher_;

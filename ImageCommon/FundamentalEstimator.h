@@ -9,6 +9,43 @@
 namespace ImageProcess_LYJ
 {
 
+	class FundamentalDecomposer
+	{
+	public:
+		FundamentalDecomposer();
+		~FundamentalDecomposer();
+
+		/**
+		 * @brief 从本质矩阵E分解RT，并通过三角化验证正确解
+		 * @param E 本质矩阵（3x3）
+		 * @param K1/K2 相机内参矩阵（3x3）
+		 * @param pts1/pts2 匹配特征点（归一化坐标，需一一对应）
+		 * @param R_out 输出旋转矩阵
+		 * @param t_out 输出平移向量
+		 * @return 是否分解成功
+		 */
+		static bool decomposeEssentialMatrix(
+			const cv::Mat& E,
+			const cv::Mat& K1, const cv::Mat& K2,
+			const std::vector<cv::Point2f>& pts1, const std::vector<cv::Point2f>& pts2,
+			Eigen::Matrix3d& R_out, Eigen::Vector3d& t_out);
+		/**
+		 * @brief 从基础矩阵F分解RT（先转E，再分解）
+		 * @param F 基础矩阵（3x3）
+		 * @param K1/K2 相机内参
+		 * @param pts1/pts2 像素坐标匹配点
+		 * @param R_out/t_out 输出RT
+		 * @return 是否成功
+		 */
+		static bool decomposeFundamentalMatrix(
+			const cv::Mat& F,
+			const cv::Mat& K1, const cv::Mat& K2,
+			const std::vector<cv::Point2f>& pts1, const std::vector<cv::Point2f>& pts2,
+			Eigen::Matrix3d& R_out, Eigen::Vector3d& t_out);
+
+	private:
+
+	};
 
 
 class RANSACFundamental : public COMMON_LYJ::RANSACWithInd<float, Eigen::Matrix3f>
