@@ -16,7 +16,10 @@ namespace ImageProcess_LYJ
 		int imgSz = _extractDatas.size();
 		std::vector<Eigen::Vector3f> locs(imgSz);
 		for (int i = 0; i < imgSz; ++i)
-			locs[i] = _extractDatas[i].Tcw.gett().cast<float>();
+		{
+			COMMON_LYJ::Pose3D Twc = _extractDatas[i].Tcw.inversed();
+			locs[i] = Twc.gett().cast<float>();
+		}
 		size_t nn = (imgSz - 1) > (opt_.nn+1) ? (opt_.nn+1) : (imgSz - 1);
 		float distTh = opt_.distTh;
 		int matchDataSz = imgSz * nn;
