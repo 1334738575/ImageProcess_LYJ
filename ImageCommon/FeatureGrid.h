@@ -23,7 +23,8 @@ namespace ImageProcess_LYJ
 	    //resolution=20
 	    FeatureGrid(const int w, const int h, const int resolution, const std::vector<cv::KeyPoint>& features);
 	
-	    void getKeypointIdsAround(const Eigen::Vector3d& line, std::vector<size_t>& ids);
+		void getKeypointIdsAround(const Eigen::Vector3d& line, std::vector<size_t>& ids);
+		void getKeypointIdsAround(const float& x, const float& y, std::vector<size_t>& ids);
 	
 	    inline int& getResolution() {
 	        return resolution;

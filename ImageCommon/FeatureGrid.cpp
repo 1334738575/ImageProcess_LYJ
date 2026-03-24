@@ -71,6 +71,26 @@ namespace ImageProcess_LYJ
         }
     }
 
+    void FeatureGrid::getKeypointIdsAround(const float& x, const float& y, std::vector<size_t>& ids)
+    {
+        int curR = y / resolution;
+        int curC = x / resolution;
+        for (int i = curR - 1; i <= curR + 1; ++i)
+        {
+            if (i > max_row || i < 0)
+                continue;
+            for (int j = curC - 1; j <= curC + 1; ++j)
+            {
+                if (j > max_col || j < 0)
+                    continue;
+                if (grid.count(i * max_col + j) == 0)
+                    continue;
+                std::vector<size_t>& idsInGrid = grid[i * max_col + j];
+                ids.insert(ids.end(), idsInGrid.begin(), idsInGrid.end());
+            }
+        }
+    }
+
 
     FeatureGridFromORB::FeatureGridFromORB(const int _w, const int _h, std::vector<cv::KeyPoint>* _kps, const int _resolution)
         :w_(_w), h_(_h), resolution_(_resolution), kps_(_kps)
