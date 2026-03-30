@@ -4,7 +4,10 @@
 
 namespace ImageProcess_LYJ
 {
-	FeatureGrid::FeatureGrid(const int w, const int h, const int resolution, const std::vector<cv::KeyPoint>& features) {
+    FeatureGrid::FeatureGrid()
+    {
+    }
+    FeatureGrid::FeatureGrid(const int w, const int h, const int resolution, const std::vector<cv::KeyPoint>& features) {
         this->resolution = resolution;
         max_row = w / resolution;
         max_col = h / resolution;
@@ -92,6 +95,57 @@ namespace ImageProcess_LYJ
     }
 
 
+
+    FeatureGridConst::FeatureGridConst()
+    {}
+    FeatureGridConst::FeatureGridConst(const std::vector<cv::KeyPoint>& _kps)
+    {
+        gridW_ = (maxW_ + resolution_ - 1) / resolution_;
+        gridH_ = (maxH_ + resolution_ - 1) / resolution_;
+        cellDatas_.assign(gridW_ * gridH_ * maxKpSzInCell_, -1);
+        cellIndSz_.assign(gridW_ * gridH_, 0);
+        init(_kps);
+    }
+    FeatureGridConst::~FeatureGridConst()
+    {}
+    void FeatureGridConst::init(const std::vector<cv::KeyPoint>& _kps)
+    {
+        int kpSz = _kps.size();
+        int cGrid = -1;
+        int rGrid = -1;
+        int kpIndTmp = 0;
+        for (int i = 0; i < kpSz; ++i)
+        {
+            const float& u = _kps[i].pt.x;
+            const float& v = _kps[i].pt.y;
+            if (!getIndGrid(u, v, cGrid, rGrid))
+                continue;
+            kpIndTmp = int(cellIndSz_[rGrid * gridW_ + cGrid]);
+            cellDatas_[rGrid * gridW_ * maxKpSzInCell_ + cGrid * maxKpSzInCell_ + kpIndTmp] = i;
+            cellIndSz_[rGrid * gridW_ + cGrid] += 1;
+        }
+    }
+    bool FeatureGridConst::getIndGrid(const float& _u, const float& _v, int& _cGrid, int& _rGrid)
+    {
+        _cGrid = int(_u) / resolution_;
+        _rGrid = int(_v) / resolution_;
+        if (_cGrid < 0 || _rGrid < 0 || _cGrid >= gridW_ || _rGrid >= gridH_)
+            return false;
+        return true;
+    }
+    void FeatureGridConst::getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz)
+    {
+        _kpIndSt = nullptr;
+        _kpIndSz = 0;
+        if (_cGrid < 0 || _rGrid < 0 || _cGrid >= gridW_ || _rGrid >= gridH_)
+            return;
+        _kpIndSt = cellDatas_.data() + (_rGrid * gridW_ * maxKpSzInCell_ + _cGrid * maxKpSzInCell_);
+        _kpIndSz = int(cellIndSz_[_rGrid * gridW_ + _cGrid]);
+    }
+
+
+
+
     FeatureGridFromORB::FeatureGridFromORB(const int _w, const int _h, std::vector<cv::KeyPoint>* _kps, const int _resolution)
         :w_(_w), h_(_h), resolution_(_resolution), kps_(_kps)
     {
@@ -166,4 +220,5 @@ namespace ImageProcess_LYJ
 
         return true;
     }
+
 }

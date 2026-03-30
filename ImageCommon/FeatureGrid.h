@@ -19,7 +19,7 @@ namespace ImageProcess_LYJ
 {
 	class FEATUREGRID_LYJ_API FeatureGrid {
 	public:
-	    FeatureGrid() = delete;
+		FeatureGrid();
 	    //resolution=20
 	    FeatureGrid(const int w, const int h, const int resolution, const std::vector<cv::KeyPoint>& features);
 	
@@ -30,10 +30,32 @@ namespace ImageProcess_LYJ
 	        return resolution;
 	    }
 	public:
-	    int resolution;
-	    int max_row;
-	    int max_col;
+	    int resolution = 1;
+	    int max_row = 0;
+	    int max_col = 0;
 	    std::unordered_map<int, std::vector<size_t>> grid;
+	};
+
+	class FEATUREGRID_LYJ_API FeatureGridConst
+	{
+	public:
+		FeatureGridConst();
+		FeatureGridConst(const std::vector<cv::KeyPoint>& _kps);
+		~FeatureGridConst();
+
+		void init(const std::vector<cv::KeyPoint>& _kps);
+		bool getIndGrid(const float& _u, const float& _v, int& _cGrid, int& _rGrid);
+		void getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz);
+
+	private:
+		const int maxW_ = 2000;
+		const int maxH_ = 2000;
+		const int resolution_ = 20;
+		int gridW_ = 0;
+		int gridH_ = 0;
+		const int maxKpSzInCell_ = 128;
+		std::vector<short> cellDatas_;
+		std::vector<char> cellIndSz_;
 	};
 
 	class FEATUREGRID_LYJ_API FeatureGridFromORB

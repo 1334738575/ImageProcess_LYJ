@@ -140,6 +140,7 @@ namespace ImageProcess_LYJ
 		//std::shared_ptr<COMMON_LYJ::KdTree2d> kdtree_ = nullptr;
 		std::shared_ptr<COMMON_LYJ::Grid2Df> grid_ = nullptr;
 		std::shared_ptr<FeatureGrid> featureGrid_ = nullptr;
+		std::shared_ptr<FeatureGridConst> featureGridConst_ = nullptr;
 		std::shared_ptr<FeatureGridFromORB> featureGridFromORB_ = nullptr;
 		//line
 		bool useLineFeature = false;
