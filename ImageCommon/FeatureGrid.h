@@ -17,6 +17,7 @@
 
 namespace ImageProcess_LYJ
 {
+
 	class FEATUREGRID_LYJ_API FeatureGrid {
 	public:
 		FeatureGrid();
@@ -36,26 +37,70 @@ namespace ImageProcess_LYJ
 	    std::unordered_map<int, std::vector<size_t>> grid;
 	};
 
-	class FEATUREGRID_LYJ_API FeatureGridConst
+
+	class FEATUREGRID_LYJ_API FeatureGridAbr
+	{
+	public:
+		FeatureGridAbr(const int& _maxW, const int& _maxH, const int& _resolu)
+			:maxW_(_maxW), maxH_(_maxH), resolu_(_resolu)
+		{
+			gridW_ = (maxW_ + resolu_ - 1) / resolu_;
+			gridH_ = (maxH_ + resolu_ - 1) / resolu_;
+		};
+		~FeatureGridAbr() {};
+
+		virtual void init(const std::vector<cv::KeyPoint>& _kps) = 0;
+		virtual bool isIndInGrid(const int& _cGrid, const int& _rGrid)
+		{
+			if (_cGrid < 0 || _rGrid < 0 || _cGrid >= gridW_ || _rGrid >= gridH_)
+				return false;
+			return true;
+		}
+		virtual bool getIndGrid(const float& _u, const float& _v, int& _cGrid, int& _rGrid)
+		{
+			_cGrid = int(_u) / resolu_;
+			_rGrid = int(_v) / resolu_;
+			return isIndInGrid(_cGrid, _rGrid);
+		}
+		virtual void getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz) = 0;
+
+	protected:
+		int maxW_ = 0;
+		int maxH_ = 0;
+		int resolu_ = 1;
+		int gridW_ = 0;
+		int gridH_ = 0;
+
+	};
+	class FEATUREGRID_LYJ_API FeatureGridConst: public FeatureGridAbr
 	{
 	public:
 		FeatureGridConst();
 		FeatureGridConst(const std::vector<cv::KeyPoint>& _kps);
 		~FeatureGridConst();
 
-		void init(const std::vector<cv::KeyPoint>& _kps);
-		bool getIndGrid(const float& _u, const float& _v, int& _cGrid, int& _rGrid);
-		void getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz);
+		virtual void init(const std::vector<cv::KeyPoint>& _kps);
+		virtual void getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz);
 
-	private:
-		const int maxW_ = 2000;
-		const int maxH_ = 2000;
-		const int resolution_ = 20;
-		int gridW_ = 0;
-		int gridH_ = 0;
+	protected:
 		const int maxKpSzInCell_ = 128;
 		std::vector<short> cellDatas_;
 		std::vector<char> cellIndSz_;
+	};
+	class FEATUREGRID_LYJ_API FeatureGridConstCom : public FeatureGridAbr
+	{
+	public:
+		FeatureGridConstCom();
+		FeatureGridConstCom(const std::vector<cv::KeyPoint>& _kps);
+		~FeatureGridConstCom();
+
+		virtual void init(const std::vector<cv::KeyPoint>& _kps);
+		virtual void getKpIndInCell(const int& _cGrid, const int& _rGrid, short* _kpIndSt, int& _kpIndSz);
+
+	private:
+		const int maxKpSz_ = 8192;
+		std::vector<short> cellDatas_;
+		std::vector<short> cellInd_;
 	};
 
 	class FEATUREGRID_LYJ_API FeatureGridFromORB
